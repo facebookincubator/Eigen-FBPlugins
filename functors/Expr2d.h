@@ -115,6 +115,12 @@ struct Expr2d<CwiseUnaryOp<Functor<typename internal::traits<XprType>::Scalar>, 
   }
 };
 
+template <typename XprType, typename Functor>
+struct Expr2d<CwiseUnaryOp<Functor, XprType>, true, false> {
+  typedef CwiseUnaryOp<Functor, XprType> ArgType;
+  typedef void type; static void make(const ArgType&) {}
+};
+
 template <typename XprType, typename OldScalar, typename NewScalar>
 struct Expr2d<CwiseUnaryOp<internal::scalar_cast_op<OldScalar, NewScalar>, XprType>, true, false> {
   typedef typename internal::wrap_scalar<OldScalar>::ChannelType OldChannelType;
@@ -242,9 +248,9 @@ struct Expr2d<CwiseBinaryOp<internal::scalar_cmp_op<typename internal::traits<Lh
     /* This seems to skip compilation in the void case, interesting. */
     typedef typename internal::remove_all<decltype(arg.lhs())>::type LHS_T;
     typedef typename internal::remove_all<decltype(arg.rhs())>::type RHS_T;
-    static_assert(LHS_T::SizeAtCompileTime == RHS_T::SizeAtCompileTime || LHS_T::SizeAtCompileTime == -1 || RHS_T::SizeAtCompileTime == -1);
-    static_assert(LHS_T::RowsAtCompileTime == RHS_T::RowsAtCompileTime || LHS_T::RowsAtCompileTime == -1 || RHS_T::RowsAtCompileTime == -1);
-    static_assert(LHS_T::ColsAtCompileTime == RHS_T::ColsAtCompileTime || LHS_T::ColsAtCompileTime == -1 || RHS_T::ColsAtCompileTime == -1);
+    static_assert((int) LHS_T::SizeAtCompileTime == (int) RHS_T::SizeAtCompileTime || (int) LHS_T::SizeAtCompileTime == -1 || (int) RHS_T::SizeAtCompileTime == -1);
+    static_assert((int) LHS_T::RowsAtCompileTime == (int) RHS_T::RowsAtCompileTime || (int) LHS_T::RowsAtCompileTime == -1 || (int) RHS_T::RowsAtCompileTime == -1);
+    static_assert((int) LHS_T::ColsAtCompileTime == (int) RHS_T::ColsAtCompileTime || (int) LHS_T::ColsAtCompileTime == -1 || (int) RHS_T::ColsAtCompileTime == -1);
     return type(Expr2d<const LhsXprType>::make(arg.lhs()), Expr2d<const RhsXprType>::make(arg.rhs()));
   }
 };

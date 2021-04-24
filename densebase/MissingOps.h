@@ -40,6 +40,10 @@ template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC DeferredArray2
 // TODO(ygitman): add 2D and 3D cases
 template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
 EIGEN_DEFERRED_CHECK_ENABLE_IF(IsVectorAtCompileTime, Index) argany() const {
+#ifdef /****/ EIGEN_EXTRA_SAFETY
+  EIGEN_STATIC_ASSERT((internal::is_same<ChannelType, bool>::value), THIS_TYPE_IS_NOT_SUPPORTED);
+#endif /**/// EIGEN_EXTRA_SAFETY
+
   typedef internal::evaluator<Derived> Evaluator;
   Evaluator evaluator(derived());
 
@@ -48,10 +52,6 @@ EIGEN_DEFERRED_CHECK_ENABLE_IF(IsVectorAtCompileTime, Index) argany() const {
   for (Index i = 0; i < derived().size(); ++i)
     if (evaluator.coeff(i))
       return i;
-
-#ifdef /****/ EIGEN_EXTRA_SAFETY
-  EIGEN_STATIC_ASSERT(internal::is_same<ChannelType, bool>::value, THIS_TYPE_IS_NOT_SUPPORTED);
-#endif /**/// EIGEN_EXTRA_SAFETY
 
   return false;
 }

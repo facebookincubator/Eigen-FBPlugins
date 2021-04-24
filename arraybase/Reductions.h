@@ -14,7 +14,7 @@ bool all() const {
       return false;
 
 #ifdef /****/ EIGEN_EXTRA_SAFETY
-  EIGEN_STATIC_ASSERT(internal::is_same<ChannelType, bool>::value, THIS_TYPE_IS_NOT_SUPPORTED);
+  EIGEN_STATIC_ASSERT((internal::is_same<ChannelType, bool>::value), THIS_TYPE_IS_NOT_SUPPORTED);
 #endif /**/// EIGEN_EXTRA_SAFETY
 
   return true;
@@ -35,7 +35,7 @@ bool any() const {
       return true;
 
 #ifdef /****/ EIGEN_EXTRA_SAFETY
-  EIGEN_STATIC_ASSERT(internal::is_same<ChannelType, bool>::value, THIS_TYPE_IS_NOT_SUPPORTED);
+  EIGEN_STATIC_ASSERT((internal::is_same<ChannelType, bool>::value), THIS_TYPE_IS_NOT_SUPPORTED);
 #endif /**/// EIGEN_EXTRA_SAFETY
 
   return false;

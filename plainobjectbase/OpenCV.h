@@ -13,7 +13,9 @@
   enum { OpenCVTypeId = internal::wrap_scalar<Scalar>::cv2_type_id };
 
   typedef cv::Vec<ChannelType, NumChannels> cvPixelTp;
-  enum { Guard = (BaseFlag && (Flags & RowMajorBit) && OpenCVDepthId != -1) };
+  enum { Guard = (BaseFlag && ((Flags & RowMajorBit)
+         || internal::traits<Derived>::RowsAtCompileTime == 1
+         || internal::traits<Derived>::ColsAtCompileTime == 1) && OpenCVDepthId != -1) };
 
   struct NONE1 { /* private class to disable conversion */ };
   struct NONE2 { /* private class to disable conversion */ };

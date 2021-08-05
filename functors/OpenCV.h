@@ -43,16 +43,23 @@ struct CV_Traits {
 }  // namespace internal
 
 template <typename Type, int N, int M> static
-typename internal::CV_Traits<Type, N, M>::MapT
-MakeMap(const cv::Matx<Type, N, M>& arg)
+auto MakeMap(const cv::Matx<Type, N, M>& arg)
   { typedef typename internal::CV_Traits<Type, N, M>::MapT MapT;
     return MapT((typename MapT::Scalar*) arg.val); }
 
 template <typename Tpx> static
-typename internal::CV_Traits<Tpx>::MapT
-MakeMap(const cv::Mat_<Tpx>& arg) {
+auto MakeMap(const cv::Mat_<Tpx>& arg) {
   typedef typename internal::CV_Traits<Tpx>::MapT MapT;
   int N = arg.rows, M = arg.cols;
+
+  return MapT((typename MapT::Scalar*) arg.data, N, M);
+}
+
+template <typename Tpx> static
+auto MakeMap(const cv::Mat& arg) {
+  typedef typename internal::CV_Traits<Tpx>::MapT MapT;
+  int N = arg.rows, M = arg.cols;
+
   return MapT((typename MapT::Scalar*) arg.data, N, M);
 }
 

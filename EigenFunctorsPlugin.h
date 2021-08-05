@@ -31,6 +31,10 @@
 #  include "./functors/OpenCV.h"
 #endif   // EIGEN_WITH_OPENCV
 
+#ifdef /**/ EIGEN_WITH_TORCH
+#  include "./functors/Torch.h"
+#endif   // EIGEN_WITH_TORCH
+
 #ifdef /**/ EIGEN_FUNCTORS_EXTRA_PLUGIN
 #  include EIGEN_FUNCTORS_EXTRA_PLUGIN
 #endif   // EIGEN_FUNCTORS_EXTRA_PLUGIN

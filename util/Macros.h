@@ -70,6 +70,9 @@
 #define EIGEN_META_IF(cnd, T1, T2) \
   typename internal::conditional<cnd, T1, T2>::type
 
+#define EIGEN_ENABLE_IF(cnd, T) \
+  typename internal::enable_if<cnd, T>::type
+
 // We need to export MaxRows/MaxCols to avoid enum-compare warning
 #define EIGEN_DEFINE_PUBLIC_INTERFACE(Derived)                                                        \
   constexpr static int MaxRowsAtCompileTime = Eigen::internal::traits<Derived>::MaxRowsAtCompileTime; \

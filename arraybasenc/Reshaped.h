@@ -1,10 +1,20 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
-const Reshaped<const Derived, SizeAtCompileTime, 1> reshaped2d() const
-  { return Base::reshaped(); }
+  template <int Order = ColMajor, typename NRowsType, typename NColsType>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC const auto reshaped2d(NRowsType nRows, NColsType nCols) const
+    { return Base::template reshaped<Order>(nRows, nCols); }
 
-Reshaped<Derived, SizeAtCompileTime, 1> reshaped2d()
-  { return Base::reshaped(); }
+  template <int Order = ColMajor, typename NRowsType, typename NColsType>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC auto reshaped2d(NRowsType nRows, NColsType nCols)
+    { return Base::template reshaped<Order>(nRows, nCols); }
+
+  template <int Order = ColMajor>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC const auto reshaped2d() const
+    { return Base::template reshaped<Order>(); }
+
+  template <int Order = ColMajor>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC auto reshaped2d()
+    { return Base::template reshaped<Order>(); }
 
  protected:
   void reshaped() const {}

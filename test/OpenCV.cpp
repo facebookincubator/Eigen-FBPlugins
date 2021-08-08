@@ -12,8 +12,15 @@
 
 
 INIT_TEST(OpenCV_X, Types_X_OpenCV) WITH_COMMON
+  auto x = A.template reshaped2d<Eigen::AutoOrder>();
+  auto y = B.template reshaped2d<Eigen::AutoOrder>();
+  auto z = C.template reshaped2d<Eigen::AutoOrder>();
+
   cv::absdiff((2 * A + 1), (2 * B - 1), C);
   EXPECT_APPROX(2 * (A - B + 1).abs(), C);
+
+  cv::absdiff((2 * x + 1), (2 * y - 1), z);
+  EXPECT_APPROX(2 * (x - y + 1).abs(), z);
 
   Eigen::Array4d w = MakeMap(cv::sum(Af));
   EXPECT_NEAR(w.sum(), Af.sum(), 1e-2);

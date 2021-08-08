@@ -21,17 +21,17 @@ static bool isApproxEq(double A, double B) { return std::abs(A - B) < 1e-2; }
 
 static bool isApproxEq(float A, float B) { return std::abs(A - B) < 1e-2f; }
 
+template <typename Tp> struct wrapper { enum { ND = 1 }; typedef Tp type; };
+
+template <typename Tp, int N>
+struct wrapper<Array<Tp, N, 1>> { enum { ND = N }; typedef Tp type; };
+
 static bool isApproxEq(int64_t A, int64_t B) { return (A == B); }
 static bool isApproxEq(int32_t A, int32_t B) { return (A == B); }
 static bool isApproxEq(int16_t A, int16_t B) { return (A == B); }
 static bool isApproxEq(uint8_t A, uint8_t B) { return (A == B); }
 
 #define EXPECT_APPROX(A, B) EXPECT_TRUE(isApproxEq(A, B))
-
-template <typename Tp> struct wrapper { typedef Tp type; };
-
-template <typename Tp, int N>
-struct wrapper<Array<Tp, N, 1>> { typedef Tp type; };
 
 #define INIT_TEST(Name, ...)                               \
   template <class> struct Types_##Name : testing::Test {}; \
@@ -41,6 +41,7 @@ struct wrapper<Array<Tp, N, 1>> { typedef Tp type; };
   TYPED_TEST(Types_##Name, Name) {                         \
     typedef typename TypeParam::Scalar Scalar;             \
     typedef typename wrapper<Scalar>::type Tp;             \
+    constexpr int ND = wrapper<Scalar>::ND;                \
     TypeParam A = TypeParam::Random(4, 7);                 \
     if (std::is_integral<Tp>::value)                       \
       { A -= A / 16 * 16; }                                \

@@ -34,6 +34,7 @@ INIT_TEST(TORCH_A, Types_3D_X_OpenCV)
       data_traits<Tp>::func());
 
   EXPECT_TRUE(torch::allclose(T, A.torchTensor4D()));
+  EXPECT_APPROX((Eigen::MakeMap<Tp, ND>(T)), A);
 }
 
 INIT_TEST(TORCH_B, Types_3D_S_OpenCV)
@@ -42,6 +43,7 @@ INIT_TEST(TORCH_B, Types_3D_S_OpenCV)
       data_traits<Tp>::func());
 
   EXPECT_TRUE(torch::allclose(T, A.torchTensor4D()));
+  EXPECT_APPROX((Eigen::MakeMap<Tp, ND>(T)), A);
 }
 
 INIT_TEST(TORCH_C, Types_2D_X_OpenCV)
@@ -50,6 +52,7 @@ INIT_TEST(TORCH_C, Types_2D_X_OpenCV)
       data_traits<Tp>::func());
 
   EXPECT_TRUE(torch::allclose(T, A.torchTensor4D()));
+  EXPECT_APPROX((Eigen::MakeMap<Tp, ND>(T)), A);
 }
 
 INIT_TEST(TORCH_D, Types_2D_S_OpenCV)
@@ -58,6 +61,7 @@ INIT_TEST(TORCH_D, Types_2D_S_OpenCV)
       data_traits<Tp>::func());
 
   EXPECT_TRUE(torch::allclose(T, A.torchTensor4D()));
+  EXPECT_APPROX((Eigen::MakeMap<Tp, ND>(T)), A);
 }
 
 #endif // EIGEN_WITH_TORCH

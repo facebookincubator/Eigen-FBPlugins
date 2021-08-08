@@ -1,7 +1,9 @@
-}  // namespace internal
+/* Copyright (c) Facebook, Inc. and its affiliates. */
 
 // TODO(ygitman): check if any alignment is guaranteed
 // TODO(ygitman): support multi-dimensional arrays
+
+}  // namespace internal
 
 template <typename Tpx> static
 auto MakeMap(const torch::Tensor& arg) {

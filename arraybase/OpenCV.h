@@ -4,15 +4,28 @@ private:
  struct DISABLE_CONVERSION1 {};
  struct DISABLE_CONVERSION2 {};
  struct DISABLE_CONVERSION3 {};
+ struct DISABLE_CONVERSION4 {};
 
 public:
- EIGEN_STRONG_INLINE operator typename internal::conditional<
-     (Flags & RowMajorBit) && internal::wrap_scalar<Scalar>::cv2_depth_id != -1,
-     internal::OpenCVInputArrayHold,
-     DISABLE_CONVERSION1>::type() const {
-     return internal::OpenCVInputArrayHold(
-         rows(), cols(), internal::wrap_scalar<Scalar>::cv2_type_id, derived());
+#define IS_ROWMAJOR_AND_CV_TYPE                         \
+  (internal::wrap_scalar<Scalar>::cv2_depth_id != -1 && \
+  ((Flags & RowMajorBit) || IsVectorAtCompileTime))
+
+#define IS_WRITABLE \
+  ((Flags & DirectAccessBit) && (Flags & LvalueBit))
+
+ EIGEN_STRONG_INLINE operator
+ typename internal::conditional<IS_ROWMAJOR_AND_CV_TYPE && !IS_WRITABLE, internal::OpenCVInputArrayHold, DISABLE_CONVERSION1>::type() const {
+     return internal::OpenCVInputArrayHold(rows(), cols(), internal::wrap_scalar<Scalar>::cv2_type_id, derived());
  }
+
+ EIGEN_STRONG_INLINE operator
+ typename internal::conditional<IS_ROWMAJOR_AND_CV_TYPE && IS_WRITABLE, internal::OpenCVOutputArrayHold, DISABLE_CONVERSION4>::type() {
+     return internal::OpenCVOutputArrayHold(rows(), cols(), internal::wrap_scalar<Scalar>::cv2_type_id, derived().data());
+ }
+
+#undef IS_ROWMAJOR_AND_CV_TYPE
+#undef IS_WRITABLE
 
  EIGEN_STRONG_INLINE
  operator typename internal::conditional<IsVectorAtCompileTime &&

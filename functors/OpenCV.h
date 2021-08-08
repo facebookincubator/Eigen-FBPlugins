@@ -113,7 +113,7 @@ class OpenCVOutputArrayHold : public cv::_OutputArray {
 
  public:
   OpenCVOutputArrayHold(int rows, int cols, int type, void* data)
-    : cv::_OutputArray(obj), obj(rows, cols, type, const_cast<void*>(data)) {
+    : cv::_OutputArray(obj), obj(rows, cols, type, (void*) data) {
 
 #ifndef /**/ EIGEN_NO_DEBUG
     rows_ = rows;

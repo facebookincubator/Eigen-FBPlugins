@@ -17,6 +17,7 @@
 #include "./functors/UnaryOps.h"
 #include "./functors/Indexing.h"
 #include "./functors/TypeDefs.h"
+#include "./functors/NaryOps.h"
 #include "./functors/Select.h"
 #include "./functors/Expr2d.h"
 #include "./functors/IO.h"

@@ -186,7 +186,7 @@ Use `-DEIGEN_WITH_TORCH` and `-DEIGEN_WITH_OPENCV -DOPENCV_TRAITS_ENABLE_DEPRECA
 
 Use `-DEIGEN_DISABLE_MULTICHANNEL_ARRAYS` if you don't need multichannel arrays.
 
-Use `-DEIGEN_EXTRA_SAFETY` to make Eigen fail compilation on operations likely subject to overflow of precision loss, e.g. summing up array of uint8_t or computing norm of integer array.
+Use `-DEIGEN_EXTRA_SAFETY` to make Eigen fail compilation on operations likely subject to overflow or precision loss, e.g. summing up array of uint8_t or computing norm of integer array.
 
 ## License
 This project is licensed under Mozilla Public License 2.0, as found in the [LICENSE](LICENSE) file.

@@ -77,13 +77,16 @@ struct ChannelwiseOp {
   EIGEN_STRONG_INLINE_DEVICE_FUNC const REDUX_UNARY_OP(fn) fn() const \
     { return REDUX_UNARY_OP(fn)(ref); }
 
+  template <int N>
+  auto replicate() { return ChannelwiseReplicate<N, const Derived>(ref); }
+
   typename internal::ultimate_ref_selector<Derived>::type ref;
+
   ChannelwiseOp(Derived& refexpr) : ref(refexpr) {}
 
 // TODO(ygitman): implement reverseInPlace
 // TODO(ygitman): implement normalized
 // TODO(ygitman): implement normalize
-// TODO(ygitman): implement replicate
 // TODO(ygitman): implement reverse
 // TODO(ygitman): implement lpNorm
 // TODO(ygitman): implement redux

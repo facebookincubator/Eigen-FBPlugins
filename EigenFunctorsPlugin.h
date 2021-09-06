@@ -12,6 +12,7 @@
 #include "./functors/StlExtensions.h"
 #include "./functors/CellwiseOps.h"
 #include "./functors/Reductions.h"
+#include "./functors/Replicate.h"
 #include "./functors/BinaryOps.h"
 #include "./functors/ScalarOps.h"
 #include "./functors/UnaryOps.h"

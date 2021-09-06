@@ -365,6 +365,12 @@ struct Expr2d<Block<XprType, BlockRows, BlockCols, InnerPanel>, true, false> {
   }
 };
 
+template <int N, typename XprType>
+struct Expr2d<ChannelwiseReplicate<N, XprType>, true, false> {
+  typedef ChannelwiseReplicate<N, XprType> ArgType;
+  typedef void type; static void make(const ArgType&) {}
+};
+
 // TODO(ygitman): other expressions (reverse, transpose, ...)?
 
 namespace internal {

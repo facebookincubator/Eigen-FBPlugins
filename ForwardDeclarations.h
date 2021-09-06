@@ -34,6 +34,7 @@ template <typename T,
 };
 
 template <typename, typename, typename> struct SelectNC;
+template <int, typename> struct ChannelwiseReplicate;
 template <typename, int> struct VectorwiseOpExt;
 template <typename> struct ArrayBaseNC;
 

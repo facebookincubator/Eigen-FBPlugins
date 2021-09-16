@@ -20,9 +20,8 @@ INIT_TEST(REPLICATE_OPS_2D, Types_2D_F32_AnyMajor)
 INIT_TEST(REPLICATE_OPS_2D, Types_2D_AnyMajor)
 #endif
   const auto& M = A.channelwise().template replicate<2>();
-  typedef Eigen::Array<Tp, 2, 1> RScalar;
 
   for (int i = 0; i < M.rows(); ++i)
     for (int j = 0; j < M.cols(); ++j)
-      EXPECT_APPROX(M(i, j), RScalar::Constant(A(i, j)));
+      EXPECT_TRUE((M(i, j) - A(i, j)).isZero());
 }

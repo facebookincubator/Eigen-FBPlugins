@@ -3,7 +3,7 @@
 #include "CommonHeader.h"  // Common definitions
 
 #if !defined(__clang__)
-INIT_TEST(REPLICATE_OPS_3D, Types_F32_3D_AnyMajor)
+INIT_TEST(REPLICATE_OPS_3D, Types_3D_F32_AnyMajor)
 #else
 INIT_TEST(REPLICATE_OPS_3D, Types_3D_AnyMajor)
 #endif
@@ -15,7 +15,7 @@ INIT_TEST(REPLICATE_OPS_3D, Types_3D_AnyMajor)
 }
 
 #if !defined(__clang__)
-INIT_TEST(REPLICATE_OPS_2D, Types_F32_2D_AnyMajor)
+INIT_TEST(REPLICATE_OPS_2D, Types_2D_F32_AnyMajor)
 #else
 INIT_TEST(REPLICATE_OPS_2D, Types_2D_AnyMajor)
 #endif

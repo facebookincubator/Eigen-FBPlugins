@@ -52,25 +52,25 @@ struct evaluator<ChannelwiseReplicate<ReplicateFactor, MatrixType> >
   enum { Alignment = evaluator<MatrixType>::Alignment };
   enum { Flags = (unsigned int)evaluator<MatrixType>::Flags };
 
+  typedef typename traits<MatrixType>::Scalar Scalar;
+
   EIGEN_STRONG_INLINE_DEVICE_FUNC explicit evaluator(const XprType& x)
     : m_matrixImpl(x.nestedExpression())
     { EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost); }
 
+  typedef typename wrap_scalar<Scalar>::ChannelType ChannelType;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
+  enum { NumChannels = wrap_scalar<Scalar>::NumChannels };
+  enum { IsNC = NumChannels > 1 };
 
-  template <int K, typename Tp, int N>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static auto replicate(const Array<Tp, N, 1>& x)
-    { return x.template replicate<K, 1>().eval(); }
-
-  template <int K, typename Tp>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static auto replicate(const Tp& x)
-    { return Array<Tp, K, 1>::Constant(x).eval(); }
+  typedef Array<ChannelType, wrap_scalar<Scalar>::NumChannels, 1> PScalar;
+  typedef typename conditional<IsNC, Scalar, PScalar>::type WScalar;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const
-    { return replicate<ReplicateFactor>(m_matrixImpl.coeff(row, col)); }
+    { return WScalar(m_matrixImpl.coeff(row, col)).template replicate<ReplicateFactor, 1>().eval(); }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
-    { return replicate<ReplicateFactor>(m_matrixImpl.coeff(index)); }
+    { return WScalar(m_matrixImpl.coeff(index)).template replicate<ReplicateFactor, 1>().eval(); }
 
 protected:
   evaluator<MatrixType> m_matrixImpl;

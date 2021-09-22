@@ -8,8 +8,8 @@ INIT_TEST(SUBSAMPLE, All_Test_Types)
   int a = rand() % (A.rows() / 2 - 1) + 1;
   int b = rand() % (A.cols() / 2 - 1) + 1;
 
+  using Eigen::indexing::last;
   using Eigen::subsample;
-  using Eigen::last;
   using Eigen::seq;
   using Eigen::fix;
 

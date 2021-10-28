@@ -17,12 +17,12 @@ auto max(const ArrayBase<Tp>& arg, const ArrayBase<Args>& ...other_args) {
 
 template <typename Tp1, typename Tp2> EIGEN_STRONG_INLINE_DEVICE_FUNC
 auto min(const ArrayBase<Tp1>& arg1, const ArrayBase<Tp2>& arg2) {
-  return arg1.min(arg2);
+  return arg1.derived().min(arg2.derived());
 }
 
 template <typename Tp1, typename Tp2> EIGEN_STRONG_INLINE_DEVICE_FUNC
 auto max(const ArrayBase<Tp1>& arg1, const ArrayBase<Tp2>& arg2) {
-  return arg1.max(arg2);
+  return arg1.derived().max(arg2.derived());
 }
 
 namespace /***/ internal {

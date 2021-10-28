@@ -2,7 +2,11 @@
 
 #include "CommonHeader.h"  // Common definitions
 
+#if 0
+// TODO(ygitman): Eigen master is broken, reenable once fixed
+
 #if !defined(__clang__)
+// INIT_TEST(CLAMP, Types_F32_AnyMajor)
 INIT_TEST(CLAMP, Types_F32_AnyMajor)
 #else
 INIT_TEST(CLAMP, All_Test_Types)
@@ -14,3 +18,5 @@ INIT_TEST(CLAMP, All_Test_Types)
   EXPECT_APPROX(A.max(x).min(y),
       A.clamp(x, y));
 }
+
+#endif

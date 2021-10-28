@@ -1,5 +1,26 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
+#define INHERIT_OP(op)                                             \
+  template <typename OtherDerived> EIGEN_STRONG_INLINE_DEVICE_FUNC \
+  const auto op(const ArrayBaseNC<OtherDerived>& arg) const {      \
+    return derived().ArrayBase::op(arg.derived());                 \
+  }
+
+INHERIT_OP(operator !=)
+INHERIT_OP(operator ==)
+INHERIT_OP(operator >=)
+INHERIT_OP(operator <=)
+
+INHERIT_OP(operator >)
+INHERIT_OP(operator <)
+INHERIT_OP(operator &)
+INHERIT_OP(operator |)
+
+INHERIT_OP(min)
+INHERIT_OP(max)
+
+#undef INHERIT_OP
+
 #define PROMOTED_TP typename internal::promote_scalar_arg<ChannelType, ScalarType, 0>::type
 #define /**/ GUARD typename internal::make_int<PROMOTED_TP>::type = 0
 
@@ -38,6 +59,7 @@ DEFINE_OPERATION_WITH_SCALARS(COMP_FUNC(GE), operator >=)
 DEFINE_OPERATION_WITH_SCALARS(COMP_FUNC(LT), operator <)
 DEFINE_OPERATION_WITH_SCALARS(COMP_FUNC(GT), operator >)
 
+// TODO(ygitman): Support NaN propagation
 DEFINE_LHS_OPERATION_WITH_SCALARS(BASE_FUNC(min), (min))
 DEFINE_LHS_OPERATION_WITH_SCALARS(BASE_FUNC(max), (max))
 

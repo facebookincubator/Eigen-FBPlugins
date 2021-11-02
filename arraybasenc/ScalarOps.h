@@ -3,7 +3,7 @@
 #define INHERIT_OP(op)                                             \
   template <typename OtherDerived> EIGEN_STRONG_INLINE_DEVICE_FUNC \
   const auto op(const ArrayBaseNC<OtherDerived>& arg) const {      \
-    return derived().ArrayBase::op(arg.derived());                 \
+    return derived().ArrayBase<Derived>::op(arg.derived());        \
   }
 
 INHERIT_OP(operator !=)

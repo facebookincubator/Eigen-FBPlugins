@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 project(UnitTests)
 enable_testing()
 
@@ -53,5 +53,8 @@ foreach(PLUGIN_FILE ${PLUGINS})
   target_compile_definitions(test-all
     PUBLIC EIGEN_${PLUGIN}_PLUGIN=\"${PLUGIN_FILE}\")
 endforeach(PLUGIN_FILE)
+
+set_property(TARGET test-all PROPERTY MSVC_RUNTIME_LIBRARY
+  "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 gtest_discover_tests(test-all)

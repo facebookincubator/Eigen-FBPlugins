@@ -54,7 +54,11 @@ foreach(PLUGIN_FILE ${PLUGINS})
     PUBLIC EIGEN_${PLUGIN}_PLUGIN=\"${PLUGIN_FILE}\")
 endforeach(PLUGIN_FILE)
 
+set_property(TARGET gtest_main PROPERTY MSVC_RUNTIME_LIBRARY
+  "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set_property(TARGET test-all PROPERTY MSVC_RUNTIME_LIBRARY
+  "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_property(TARGET gtest PROPERTY MSVC_RUNTIME_LIBRARY
   "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 gtest_discover_tests(test-all)

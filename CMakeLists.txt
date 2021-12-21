@@ -10,7 +10,7 @@ file(GLOB SRCS ${SRC_DIR}/test/*.cpp)
 add_executable(test-all ${SRCS})
 
 set(
-  gtest_force_shared_crt ON
+  gtest_force_shared_crt OFF
   CACHE BOOL "" FORCE
 )
 

@@ -1,6 +1,5 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
-#if /***/ EIGEN_HAS_CXX14
 }  // namespace internal
 
 // TODO(ygitman): Make recursion depth logarithmic as it is more efficient
@@ -26,4 +25,3 @@ auto max(const ArrayBase<Tp1>& arg1, const ArrayBase<Tp2>& arg2) {
 }
 
 namespace /***/ internal {
-#endif // EIGEN_HAS_CXX14

@@ -50,8 +50,8 @@ struct evaluator<SelectNC<ConditionType, ThenArrayType, ElseArrayType> >
   : evaluator_base<SelectNC<ConditionType, ThenArrayType, ElseArrayType> >
 {
   typedef SelectNC<ConditionType, ThenArrayType, ElseArrayType> XprType;
-  enum { CoeffReadCost = evaluator<ConditionType>::CoeffReadCost + EIGEN_PLAIN_ENUM_MAX(evaluator<ThenArrayType>::CoeffReadCost, evaluator<ElseArrayType>::CoeffReadCost) };
-  enum { Alignment = EIGEN_PLAIN_ENUM_MIN(evaluator<ThenArrayType>::Alignment, evaluator<ElseArrayType>::Alignment) };
+  enum { CoeffReadCost = evaluator<ConditionType>::CoeffReadCost + EIGEN_PLUGINS_PLAIN_ENUM_MAX(evaluator<ThenArrayType>::CoeffReadCost, evaluator<ElseArrayType>::CoeffReadCost) };
+  enum { Alignment = EIGEN_PLUGINS_PLAIN_ENUM_MIN(evaluator<ThenArrayType>::Alignment, evaluator<ElseArrayType>::Alignment) };
   enum { Flags = (unsigned int)evaluator<ThenArrayType>::Flags & evaluator<ElseArrayType>::Flags & HereditaryBits };
 
   EIGEN_STRONG_INLINE_DEVICE_FUNC explicit evaluator(const XprType& select)

@@ -21,8 +21,6 @@ struct Tuple {
 
 }  // namespace internal
 
-#if /***/ EIGEN_HAS_CXX11 == 1
-
 }  // namespace Eigen
 namespace /***/ std {
 
@@ -32,15 +30,10 @@ struct tuple_size<Eigen::internal::Tuple<Xpr>> {
   typedef std::size_t value_type;
   typedef Xpr type;
 
-#if /***/ EIGEN_HAS_CXX14 == 0
-  operator value_type() const noexcept
-    { return value; }
-#else  // EIGEN_HAS_CXX14 == 0
   constexpr   operator value_type() const noexcept
     { return value; }
   constexpr value_type operator()() const noexcept
     { return value; }
-#endif // EIGEN_HAS_CXX14 == 0
 };
 
 template <std::size_t N, typename T, int ...Vs>
@@ -65,8 +58,6 @@ struct tuple_element<N, Eigen::internal::Tuple<Xpr>>
 
 }  // namespace std
 namespace /***/ Eigen {
-
-#endif // EIGEN_HAS_CXX11 == 1
 
 template <int Idx, typename Derived>
 EIGEN_STRONG_INLINE_DEVICE_FUNC

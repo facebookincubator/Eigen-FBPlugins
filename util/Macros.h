@@ -73,6 +73,12 @@
 #define EIGEN_ENABLE_IF(cnd, T) \
   typename internal::enable_if<cnd, T>::type
 
+#define EIGEN_PLUGINS_PLAIN_ENUM_MAX(a, b) \
+  (((int) a >= (int) b) ? (int) a : (int) b)
+
+#define EIGEN_PLUGINS_PLAIN_ENUM_MIN(a, b) \
+  (((int) a <= (int) b) ? (int) a : (int) b)
+
 // We need to export MaxRows/MaxCols to avoid enum-compare warning
 #define EIGEN_DEFINE_PUBLIC_INTERFACE(Derived)                                                        \
   constexpr static int MaxRowsAtCompileTime = Eigen::internal::traits<Derived>::MaxRowsAtCompileTime; \

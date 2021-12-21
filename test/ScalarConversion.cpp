@@ -1,5 +1,6 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
+#define EIGEN_DISABLE_MULTICHANNEL_ARRAYS
 #include "CommonHeader.h"  // Common definitions
 
 INIT_TEST(SCALAR_CONVERSION, Types_2D_ColMajor)

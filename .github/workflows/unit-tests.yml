@@ -24,16 +24,16 @@ jobs:
 
         include:
           -
-            cmake_generator: '"Visual Studio 16 2019" -Thost=x64 -A x64'
+            cmake_generator: '"Visual Studio 17 2022" -Thost=x64 -A x64'
             compiler: {cpp: cl, c: cl}
-            os: windows-2019
+            os: windows-2022
             mode: Release
             standard: 17
 
           -
-            cmake_generator: '"Visual Studio 15 2017" -Thost=x64 -A x64'
+            cmake_generator: '"Visual Studio 16 2019" -Thost=x64 -A x64'
             compiler: {cpp: cl, c: cl}
-            os: windows-2016
+            os: windows-2019
             mode: Release
             standard: 14
 

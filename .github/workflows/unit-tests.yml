@@ -16,31 +16,31 @@ jobs:
       fail-fast: false
 
       matrix:
+        compiler: [{cpp: g++, c: gcc}, {cpp: clang++, c: clang}]
         os: [ubuntu-latest, windows-latest, macos-latest]
         cmake_generator: ['"Unix Makefiles"']
-        compiler: [g++, clang++]
         standard: [17, 14]
         mode: [Release]
 
         include:
           -
             cmake_generator: '"Visual Studio 16 2019" -Thost=x64 -A x64'
+            compiler: {cpp: cl, c: cl}
             os: windows-2019
             mode: Release
-            compiler: cl
             standard: 17
 
           -
             cmake_generator: '"Visual Studio 15 2017" -Thost=x64 -A x64'
+            compiler: {cpp: cl, c: cl}
             os: windows-2016
             mode: Release
-            compiler: cl
             standard: 14
 
           -
             cmake_generator: '"Unix Makefiles"'
+            compiler: {cpp: clang++, c: clang}
             os: ubuntu-latest
-            compiler: clang++
             standard: 14
             mode: ASAN
 
@@ -59,7 +59,8 @@ jobs:
       - run: >
           cmake
           -DCMAKE_CONFIGURATION_TYPES="${{ matrix.mode }}"
-          -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cpp }}
+          -DCMAKE_C_COMPILER=${{ matrix.compiler.c }}
           -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
           -DCMAKE_BUILD_TYPE=${{ matrix.mode }}
           -G ${{ matrix.cmake_generator }} .

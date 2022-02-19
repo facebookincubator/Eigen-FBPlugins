@@ -3,6 +3,10 @@
 #include "./ForwardDeclarations.h"
 #include "./util/Macros.h"
 
+#ifdef __cpp_concepts
+#  include "./util/Concepts.h"
+#endif
+
 #include "./util/TypeTraits.h"
 #include "./util/WrapScalar.h"
 #include "./util/Helpers.h"

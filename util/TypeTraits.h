@@ -68,3 +68,5 @@ template <typename Derived> struct is_eigen_type
 template <typename Type> struct type_wrapper;
 template <typename Type> struct type_wrapper<void (*)(Type)>
   { typedef Type type; };
+
+template <typename Tp> struct NoneType {};

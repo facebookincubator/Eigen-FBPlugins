@@ -99,3 +99,9 @@
   typedef typename Base::PacketScalar PacketScalar;                                \
   using Base::const_cast_derived;                                                  \
   using Base::derived;
+
+#ifdef __cpp_concepts
+#  define EIGEN_REQUIRES(v) requires (bool(v))
+#else
+#  define EIGEN_REQUIRES(v)
+#endif

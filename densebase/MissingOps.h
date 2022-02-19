@@ -1,45 +1,45 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
+#include "./MissingOps-helper.h"
+
+// TODO(ygitman): remove extra copy?
+EIGEN_STRONG_INLINE auto sortDesc() const EIGEN_REQUIRES(internal::IsVectorExpression<Derived>)
+  { auto A = derived().eval(); A.sortDescInPlace(); return A; }
+
+// TODO(ygitman): remove extra copy?
+EIGEN_STRONG_INLINE auto sortAsc() const EIGEN_REQUIRES(internal::IsVectorExpression<Derived>)
+  { auto A = derived().eval(); A.sortAscInPlace(); return A; }
+
+EIGEN_STRONG_INLINE void sortDescInPlace()
+EIGEN_REQUIRES(internal::IsLValueExpression<Derived> && internal::IsVectorExpression<Derived>)
+  { std::sort(derived().begin(), derived().end(), std::greater<Scalar>()); }
+
+EIGEN_STRONG_INLINE void sortAscInPlace()
+EIGEN_REQUIRES(internal::IsLValueExpression<Derived> && internal::IsVectorExpression<Derived>)
+  { std::sort(derived().begin(), derived().end(), std::less<Scalar>()); }
+
 //! Converts expression to tuple-alike object, mainly for binding declarations
 EIGEN_STRONG_INLINE_DEVICE_FUNC const internal::Tuple<const Derived> asTuple() const
   { return internal::Tuple<const Derived>(derived()); }
 
-EIGEN_STRONG_INLINE void sortDescInPlace()
-  { std::sort(derived().begin(), derived().end(), std::greater<Scalar>()); }
+EIGEN_STRONG_INLINE_DEVICE_FUNC auto argmin() const {
+  std::conditional_t<!IsVectorAtCompileTime, Array<Index, 2, 1>, Index> xy;
+  derived().minCoeffHelper(&xy);
+  return xy;
+}
 
-EIGEN_STRONG_INLINE void sortAscInPlace()
-  { std::sort(derived().begin(), derived().end(), std::less<Scalar>()); }
+EIGEN_STRONG_INLINE_DEVICE_FUNC auto argmax() const {
+  std::conditional_t<!IsVectorAtCompileTime, Array<Index, 2, 1>, Index> xy;
+  derived().maxCoeffHelper(&xy);
+  return xy;
+}
 
-#define EVAL_EXPR_TYPE typename internal::remove_all<EvalReturnType>::type
-
-#define DeferredArray2i \
-  EIGEN_ENABLE_IFF_NOT_VECTOR(EIGEN_PROTECT_TYPE((Array<Index, 2, 1>)))
-
-// TODO(ygitman): remove extra copy?
-
-EIGEN_STRONG_INLINE EVAL_EXPR_TYPE sortDesc() const
-  { EVAL_EXPR_TYPE A = derived(); std::sort(A.begin(), A.end(), std::greater<Scalar>()); return A; }
-
-EIGEN_STRONG_INLINE EVAL_EXPR_TYPE sortAsc() const
-  { EVAL_EXPR_TYPE A = derived(); std::sort(A.begin(), A.end(), std::less<Scalar>()); return A; }
-
-template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
-EIGEN_DEFERRED_CHECK_ENABLE_IF(IsVectorAtCompileTime, Index)
-  argmin() const { Index index; derived().minCoeff(&index); return index; }
-
-template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC DeferredArray2i argmin() const
-  { DeferredArray2i xy; derived().minCoeff(&xy[1], &xy[0]); return xy; }
-
-template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
-EIGEN_DEFERRED_CHECK_ENABLE_IF(IsVectorAtCompileTime, Index)
-  argmax() const { Index index; derived().maxCoeff(&index); return index; }
-
-template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC DeferredArray2i argmax() const
-  { DeferredArray2i xy; derived().maxCoeff(&xy[1], &xy[0]); return xy; }
+auto clamp(const ChannelType& x, const ChannelType& y) const
+  { return derived().max(x).min(y); }
 
 // TODO(ygitman): add 2D and 3D cases
-template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
-EIGEN_DEFERRED_CHECK_ENABLE_IF(IsVectorAtCompileTime, Index) argany() const {
+EIGEN_STRONG_INLINE_DEVICE_FUNC Index argany() const
+EIGEN_REQUIRES(internal::IsVectorExpression<Derived>) {
 #ifdef /****/ EIGEN_EXTRA_SAFETY
   EIGEN_STATIC_ASSERT((internal::is_same<ChannelType, bool>::value), THIS_TYPE_IS_NOT_SUPPORTED);
 #endif /**/// EIGEN_EXTRA_SAFETY
@@ -56,18 +56,9 @@ EIGEN_DEFERRED_CHECK_ENABLE_IF(IsVectorAtCompileTime, Index) argany() const {
   return false;
 }
 
-auto clamp(const ChannelType& x, const ChannelType& y) const
-  { return derived().max(x).min(y); }
-
-#define _LINEAR_EVAL_TP_ \
-   typename Reshaped<const Derived, SizeAtCompileTime, 1>::EvalReturnType
-
-#define LINEAR_EVAL_TP \
-   typename internal::remove_const<_LINEAR_EVAL_TP_>::type
-
 EIGEN_STRONG_INLINE_DEVICE_FUNC
 Scalar median() const {
-  LINEAR_EVAL_TP A = derived().reshaped();
+  auto A = derived().reshaped().eval();
   Index p = A.size() / 2;
 
   // TODO(ygitman): remove extra copy?
@@ -78,32 +69,26 @@ Scalar median() const {
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
 Scalar middleElement() const {
-  LINEAR_EVAL_TP A = derived().reshaped();
-  Scalar* v = A.data();
-  Index N = A.size();
+  auto vals = derived().reshaped().eval();
+  Scalar* p = vals.data();
+  Index N = vals.size();
 
   // TODO(ygitman): remove extra copy?
 
-  std::nth_element(v, v + (N / 2), v + N);
-  return A[(N - 1) / 2];
+  std::nth_element(p, p + (N / 2), p + N);
+  return vals[(N - 1) / 2];
 }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
 Scalar quantile(float x) const {
-  LINEAR_EVAL_TP A = derived().reshaped();
+  auto vals = derived().reshaped().eval();
+  int q_index = x * vals.size() - x + 0.5;
   eigen_assert(0 <= x && x <= 1.0);
-  Scalar* v = A.data();
-  Index N = A.size();
+  Scalar* p = vals.data();
+  Index N = vals.size();
 
   // TODO(ygitman): remove extra copy?
 
-  int q_index = (int) (x * (N - 1) + 0.5);
-  std::nth_element(v, v + q_index, v + N);
-  return A[q_index];
+  std::nth_element(p, p + q_index, p + N);
+  return vals[q_index];
 }
-
-#undef /***/ _LINEAR_EVAL_TP_
-#undef /***/ LINEAR_EVAL_TP
-
-#undef /***/ DeferredArray2i
-#undef /***/ EVAL_EXPR_TYPE

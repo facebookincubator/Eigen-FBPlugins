@@ -1,9 +1,5 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
- private:
-  enum { Is1x1AndNotProduct = (SizeAtCompileTime == 1 && !internal::is_product_expr<Derived>::value) };
-  struct NONE { /*private class to disable implicit conversion to Scalar*/ };
-  typedef internal::conditional<Is1x1AndNotProduct, Scalar, NONE> SType;
-
- public:
-  EIGEN_STRONG_INLINE_DEVICE_FUNC operator typename SType::type() const { return derived().coeff(0); }
+EIGEN_STRONG_INLINE_DEVICE_FUNC
+operator std::conditional_t<SizeAtCompileTime == 1 && !internal::is_product_expr<Derived>::value, Scalar, internal::NoneType<Scalar>>() const
+  { return derived().coeff(0); }

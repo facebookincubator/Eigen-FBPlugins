@@ -52,9 +52,9 @@ struct CropPadsExpr {
 
   enum { SizeAtCompileTime = AnyDynamic ? Dynamic : NewSize };
 
-  variable_if_dynamic<Index, XprSize> m_size;
-  variable_if_dynamic<Index, A> m_a;
-  variable_if_dynamic<Index, B> m_b;
+  internal::variable_if_dynamic<Index, XprSize> m_size;
+  internal::variable_if_dynamic<Index, A> m_a;
+  internal::variable_if_dynamic<Index, B> m_b;
 };
 
 template <int XprSize, Index Value>
@@ -70,8 +70,8 @@ struct SubsampleExpr {
   SubsampleExpr(Index size = XprSize, Index value = Value)
       : m_size(size), m_value(value) {}
 
-  variable_if_dynamic<Index, XprSize> m_size;
-  variable_if_dynamic<Index, Value> m_value;
+  internal::variable_if_dynamic<Index, XprSize> m_size;
+  internal::variable_if_dynamic<Index, Value> m_value;
 };
 
 // TODO(ygitman): it seems that cost functors aren't supported right now

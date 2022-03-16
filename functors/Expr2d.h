@@ -57,7 +57,7 @@ struct Expr2d<T, true, true> {
 
   static constexpr int value = (internal::traits<T>::InnerStrideAtCompileTime == 1);
 
-  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  template <typename EnableIf=void, std::enable_if_t<std::is_same<EnableIf, void>::value && value, int> = 0>
   EIGEN_STRONG_INLINE_DEVICE_FUNC static auto make(std::conditional_t<IsLvalue, T, const T>& arg) {
     typedef std::conditional_t<NoOuterStride, Stride<0, 0>, Stride<S2, 0>> StrideType;
     typedef std::conditional_t<IsLvalue, PlainObj2, const PlainObj2> PlainObjectType;
@@ -85,7 +85,7 @@ struct Expr2d<CwiseTernaryOp<internal::LambdaFunctor<cost, Functor>, T1, T2, T3>
   static constexpr bool value = arg1_has_expr2d && arg2_has_expr2d && arg3_has_expr2d;
 
   template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
-  static const auto make(const std::enable_if_t<std::is_same_v<EnableIf, void> && value, ArgType>& v)
+  static const auto make(const std::enable_if_t<std::is_same<EnableIf, void>::value && value, ArgType>& v)
     { return v.functor().template operator()<0>(Expr2d<const T1>::make(v.arg1()), Expr2d<const T2>::make(v.arg2()), Expr2d<const T3>::make(v.arg3())); }
 };
 
@@ -98,7 +98,7 @@ struct Expr2d<CwiseBinaryOp<internal::LambdaFunctor<cost, Functor>, LhsXprType, 
   static constexpr bool value = lhs_has_expr2d && rhs_has_expr2d;
 
   template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
-  static const auto make(const std::enable_if_t<std::is_same_v<EnableIf, void> && value, ArgType>& v)
+  static const auto make(const std::enable_if_t<std::is_same<EnableIf, void>::value && value, ArgType>& v)
     { return v.functor().template operator()<0>(Expr2d<const LhsXprType>::make(v.lhs()), Expr2d<const RhsXprType>::make(v.rhs())); }
 };
 
@@ -110,7 +110,7 @@ struct Expr2d<CwiseUnaryOp<internal::LambdaFunctor<cost, Functor>, XprType>, tru
   EIGEN_IMPORT_NUMCHANNELS(Scalar);
 
   template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
-  static const auto make(const std::enable_if_t<std::is_same_v<EnableIf, void> && value, ArgType>& v)
+  static const auto make(const std::enable_if_t<std::is_same<EnableIf, void>::value && value, ArgType>& v)
     { return v.functor().template operator()<0>(Expr2d<const XprType>::make(v.nestedExpression())); }
 };
 
@@ -127,7 +127,7 @@ struct Expr2d<CwiseBinaryOp<Functor<T1, T2 EXPAND_OTHER_ARGS>, LhsXprType, RhsXp
   template <typename Tp1, typename Tp2> EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto makeHelper(const Tp1& arg1, const Tp2& arg2)
     { return CwiseBinaryOp<Functor<X1, X2 EXPAND_OTHER_ARGS>, const Tp1, const Tp2>(arg1, arg2); }
 
-  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  template <typename EnableIf=void, std::enable_if_t<std::is_same<EnableIf, void>::value && value, int> = 0>
   EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& v)
     { return makeHelper(Expr2d<const LhsXprType>::make(v.lhs()), Expr2d<const RhsXprType>::make(v.rhs())); }
 };
@@ -141,7 +141,7 @@ struct Expr2d<CwiseUnaryOp<Functor<typename internal::traits<XprType>::Scalar EX
   template <typename Tp> EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto makeHelper(const Tp& arg)
     { return CwiseUnaryOp<Functor<ChannelType EXPAND_OTHER_ARGS>, const Tp>(arg); }
 
-  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  template <typename EnableIf=void, std::enable_if_t<std::is_same<EnableIf, void>::value && value, int> = 0>
   EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& arg)
     { return makeHelper(Expr2d<const XprType>::make(arg.nestedExpression())); }
 };
@@ -181,7 +181,7 @@ struct Expr2d<Reshaped<XprType, N, M, Order>, true, false> {
   template <typename Tp> EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto makeHelper(const Tp& v, Index rows, Index cols)
     { return Reshaped<const Tp, V1, V2, Order>(v, rows, cols); }
 
-  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  template <typename EnableIf=void, std::enable_if_t<std::is_same<EnableIf, void>::value && value, int> = 0>
   EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& v)
     { return makeHelper(Expr2d<const XprType>::make(v.nestedExpression()), getRows(v.rows()), getCols(v.cols())); }
 };
@@ -205,7 +205,7 @@ struct Expr2d<Block<XprType, BlockRows, BlockCols, InnerPanel>, true, false> {
   static const auto makeHelper(const Tp& v, int startRow, int startCol, int rows, int cols)
     { return Block<const Tp, BlockRows2d, BlockCols2d, InnerPanel>(v, startRow, startCol, rows, cols); }
 
-  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  template <typename EnableIf=void, std::enable_if_t<std::is_same<EnableIf, void>::value && value, int> = 0>
   EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& v)
     { return makeHelper(Expr2d<const XprType>::make(v.nestedExpression()),
                         getRows(v.startRow()), getCols(v.startCol()),
@@ -218,7 +218,7 @@ struct Expr2d<PartialReduxExpr<T, ReduxFunctor, internal::traits<T>::Flags & Row
   static constexpr bool value = Expr2d<const T>::value;
 
   template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
-  static const auto make(const std::enable_if_t<std::is_same_v<EnableIf, void> && value, ArgType>& arg)
+  static const auto make(const std::enable_if_t<std::is_same<EnableIf, void>::value && value, ArgType>& arg)
     { return arg.functor()(Expr2d<const T>::make(arg.nestedExpression()).alongOuterDim()); }
 };
 

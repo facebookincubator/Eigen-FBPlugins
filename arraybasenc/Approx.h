@@ -5,21 +5,21 @@
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
 bool isMuchSmallerThan(const typename NumTraits<ChannelType>::Real& other, PRECISION) const {
-  return (std::is_same_v<ChannelType, typename NumTraits<ChannelType>::NonInteger>)
+  return (std::is_same<ChannelType, typename NumTraits<ChannelType>::NonInteger>::value)
       ? derived().abs2().sum() <= prec * prec * other * other
       : (derived() == ChannelType(0)).all();
 }
 
 template <typename OtherDerived> EIGEN_STRONG_INLINE_DEVICE_FUNC
 bool isMuchSmallerThan(const DenseBase<OtherDerived>& other, PRECISION) const {
-  return (std::is_same_v<ChannelType, typename NumTraits<ChannelType>::NonInteger>)
+  return (std::is_same<ChannelType, typename NumTraits<ChannelType>::NonInteger>::value)
       ? derived().abs2().sum() <= prec * prec * other.derived().abs2().sum()
       : (derived() == ChannelType(0)).all();
 }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
 bool isApproxToConstant(const ChannelType& val, PRECISION) const {
-  if (std::is_same_v<ChannelType, typename NumTraits<ChannelType>::NonInteger>) {
+  if (std::is_same<ChannelType, typename NumTraits<ChannelType>::NonInteger>::value) {
     auto A = derived().template nested_eval<2>();
     auto rhs = numext::mini(A.abs2().sum(), numext::abs2(val));
     return (A - val).abs2().sum() <= prec * prec * rhs;
@@ -30,7 +30,7 @@ bool isApproxToConstant(const ChannelType& val, PRECISION) const {
 
 template <typename OtherDerived> EIGEN_STRONG_INLINE_DEVICE_FUNC
 bool isApprox(const DenseBase<OtherDerived>& other, PRECISION) const {
-  if (std::is_same_v<ChannelType, typename NumTraits<ChannelType>::NonInteger>) {
+  if (std::is_same<ChannelType, typename NumTraits<ChannelType>::NonInteger>::value) {
     auto B = other.derived().template nested_eval<2>();
     auto A = derived().template nested_eval<2>();
 

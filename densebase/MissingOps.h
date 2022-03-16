@@ -39,7 +39,7 @@ auto clamp(const ChannelType& x, const ChannelType& y) const
 
 // TODO(ygitman): Add min/max specializations for booleans
 EIGEN_STRONG_INLINE_DEVICE_FUNC auto argany() const {
-  if (!std::is_same_v<ChannelType, bool>)
+  if (!std::is_same<ChannelType, bool>::value)
     return derived().template cast<bool>().argmax();
   else
     return derived().argmax();

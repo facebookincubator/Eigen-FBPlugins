@@ -4,6 +4,8 @@
 #  define EIGEN_STRONG_INLINE_DEVICE_FUNC EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 #  if EIGEN_COMP_GNUC && !defined(SYCL_DEVICE_ONLY)
 #    define EIGEN_LAMBDA_INLINE __attribute__((always_inline))
+#  else
+#    define EIGEN_LAMBDA_INLINE
 #  endif
 #else
 #  define EIGEN_STRONG_INLINE_DEVICE_FUNC inline EIGEN_DEVICE_FUNC

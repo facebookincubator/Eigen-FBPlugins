@@ -26,7 +26,7 @@ EIGEN_REQUIRES(p >= 0 || p == Infinity) {
                                                   \
   EIGEN_STRONG_INLINE_DEVICE_FUNC                 \
   auto norm_func##alized() const {                \
-    auto A = derived().nested_eval<2>();          \
+    auto A = derived().template nested_eval<2>(); \
     auto q = A.norm_func();                       \
                                                   \
     if (q != 0) {                                 \
@@ -50,7 +50,7 @@ auto squaredNorm() const { return derived().square().sum(); }
 EIGEN_STRONG_INLINE_DEVICE_FUNC
 auto stableNorm() const {
   typedef typename NumTraits<ChannelType>::Real Type;
-  auto A = derived().nested_eval<2>();
+  auto A = derived().template nested_eval<2>();
   Type maxCoeff = A.abs().maxCoeff();
   if (maxCoeff != 0)
     return maxCoeff * (A / maxCoeff).norm();

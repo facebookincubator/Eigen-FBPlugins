@@ -16,7 +16,7 @@ EIGEN_STRONG_INLINE_DEVICE_FUNC const auto select(const ScalarArgType& thenArg, 
 
 template <typename Tp1, typename Tp2> EIGEN_STRONG_INLINE_DEVICE_FUNC
 const auto select(const DenseBase<Tp1>& thenArray, const DenseBase<Tp2>& elseArray) const
-EIGEN_REQUIRES((std::is_same_v<typename Tp1::Scalar, typename Tp2::Scalar>)) {
+EIGEN_REQUIRES((std::is_same<typename Tp1::Scalar, typename Tp2::Scalar>::value)) {
   const auto& fn = [](const auto& x, const auto& y, const auto& z) EIGEN_LAMBDA_INLINE { return internal::ops::select(x, y, z); };
   return derived().ternaryExprHelper(thenArray.derived(), elseArray.derived(), internal::make_functor<NumTraits<Scalar>::AddCost>(fn));
 }

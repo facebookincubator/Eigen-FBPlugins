@@ -1,0 +1,15 @@
+name: perf-tests
+
+on:
+  push:
+    paths-ignore:
+      - 'LICENSE'
+      - '**.md'
+
+jobs:
+  run-perf-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: .github/perf-compare.sh perf-tests/*.cpp

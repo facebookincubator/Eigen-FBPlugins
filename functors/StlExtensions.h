@@ -2,9 +2,9 @@
 
 template <typename T>
 struct Tuple {
-  EIGEN_STRONG_INLINE_DEVICE_FUNC
-  explicit Tuple(const T& arg) : nestedExpression(arg.eval())
-    { EIGEN_STATIC_ASSERT_IS_COMPILE_TIME_VECTOR(T); }
+  EIGEN_STRONG_INLINE_DEVICE_FUNC explicit Tuple(const T& arg)
+  EIGEN_REQUIRES(IsFixedSizeVectorExpression<T>)
+    : nestedExpression(arg.eval()) {}
 
   EIGEN_STRONG_INLINE_DEVICE_FUNC
   const typename T::EvalReturnType nestedExpr() const
@@ -84,4 +84,4 @@ EIGEN_STRONG_INLINE_DEVICE_FUNC
 typename internal::enable_if<Derived::IsVectorAtCompileTime, typename Derived::Scalar>::type
   get(const MatrixBase<Derived>& arg) { return arg.derived()[Idx]; }
 
-namespace /***/ internal {
+namespace internal {

@@ -2,381 +2,245 @@
 
 }  // namespace internal
 
-#define /**/ MAKE_FN_ARG_TP(Type) \
-  typename internal::conditional<internal::is_lvalue<Type>::value, Type, const Type>::type&
+template <typename T, bool v> struct Expr2d<T, false, v> {
+  EIGEN_STRONG_INLINE_DEVICE_FUNC
+  static auto make(std::conditional_t<internal::traits<T>::Flags & LvalueBit, T, const T>& arg)
+    { return arg; }
 
-#define /**/ DECLARE_MAKE_FN(T) EIGEN_STRONG_INLINE_DEVICE_FUNC \
-  static typename internal::ultimate_ref_selector<type>::type make(MAKE_FN_ARG_TP(T) arg)
-
-template <typename T, bool v> struct Expr2d<T, false, v>
-  { typedef T type; DECLARE_MAKE_FN(T) { return arg; } protected: Expr2d() {} };
+  static constexpr bool value = true;
+};
 
 template <typename ExprType>
 struct Expr2d<const ExprType, true, false> : Expr2d<ExprType, true, false>
-  { typedef const typename Expr2d<ExprType, true, false>::type type; };
+  { static constexpr bool value = Expr2d<ExprType, true, false>::value; };
 
-#define /**/ GET_CONSTANTS(T)                                       \
-  enum { IsRowMajor = (internal::traits<T>::Flags & RowMajorBit) }; \
-                                                                    \
-  enum { P = internal::traits<T>::MaxRowsAtCompileTime };           \
-  enum { Q = internal::traits<T>::MaxColsAtCompileTime };           \
-  enum { N = internal::traits<T>::RowsAtCompileTime };              \
-  enum { M = internal::traits<T>::ColsAtCompileTime };              \
-                                                                    \
-  enum { Alignment = internal::traits<T>::Alignment };              \
-                                                                    \
-  typedef typename internal::traits<T>::Scalar Scalar;              \
-                                                                    \
-  EIGEN_IMPORT_CHANNELTYPE(Scalar);                                 \
-  EIGEN_IMPORT_NUMCHANNELS(Scalar);                                 \
-                                                                    \
-  enum { N2 = (N == Dynamic ? Dynamic : ((int) IsRowMajor ? (int) N : (int) N * NumChannels)) }; \
-  enum { M2 = (M == Dynamic ? Dynamic : ((int) IsRowMajor ? (int) M * NumChannels : (int) M)) }; \
-  enum { P2 = (P == Dynamic ? Dynamic : ((int) IsRowMajor ? (int) P : (int) P * NumChannels)) }; \
-  enum { Q2 = (Q == Dynamic ? Dynamic : ((int) IsRowMajor ? (int) Q * NumChannels : (int) Q)) };
+#ifdef __cpp_nontype_template_parameter_auto
+#  define DECLARE_OTHER_ARGS , auto... OtherArgs
+#  define DECLARE_OTHER_ARGS_NAMELESS , auto...
+#  define EXPAND_OTHER_ARGS , OtherArgs...
+#else
+#  define DECLARE_OTHER_ARGS , int... OtherArgs
+#  define DECLARE_OTHER_ARGS_NAMELESS , int...
+#  define EXPAND_OTHER_ARGS , OtherArgs...
+#endif
+
+#define GET_CONSTANTS(T)                                                                 \
+  static constexpr bool IsRowMajor = ((int) internal::traits<T>::Flags & RowMajorBit);   \
+  static constexpr bool IsLvalue = ((int) internal::traits<T>::Flags & LvalueBit);       \
+                                                                                         \
+  static constexpr int S = internal::traits<T>::OuterStrideAtCompileTime;                \
+  static constexpr int P = internal::traits<T>::MaxRowsAtCompileTime;                    \
+  static constexpr int Q = internal::traits<T>::MaxColsAtCompileTime;                    \
+  static constexpr int N = internal::traits<T>::RowsAtCompileTime;                       \
+  static constexpr int M = internal::traits<T>::ColsAtCompileTime;                       \
+  static constexpr int Alignment = internal::traits<T>::Alignment;                       \
+  static constexpr int OuterDim = (IsRowMajor ? M : N);                                  \
+                                                                                         \
+  typedef typename internal::traits<T>::Scalar Scalar;                                   \
+                                                                                         \
+  EIGEN_IMPORT_CHANNELTYPE(Scalar);                                                      \
+  EIGEN_IMPORT_NUMCHANNELS(Scalar);                                                      \
+                                                                                         \
+  static constexpr int N2 = N == Dynamic ? Dynamic : IsRowMajor ? N : N * NumChannels;   \
+  static constexpr int M2 = M == Dynamic ? Dynamic : IsRowMajor ? M * NumChannels : M;   \
+  static constexpr int P2 = P == Dynamic ? Dynamic : IsRowMajor ? P : P * NumChannels;   \
+  static constexpr int Q2 = Q == Dynamic ? Dynamic : IsRowMajor ? Q * NumChannels : Q;   \
+  static constexpr bool NoOuterStride = ((S != Dynamic) && (S == OuterDim));             \
+  static constexpr int S2 = (S == Dynamic ? Dynamic : (S * NumChannels));                \
+  static constexpr int Flags2 = (IsRowMajor ? RowMajorBit : 0);                          \
+                                                                                         \
+  typedef Array<ChannelType, N2, M2, Flags2, P2, Q2> PlainObj2;
 
 template <typename T>
 struct Expr2d<T, true, true> {
   GET_CONSTANTS(T)
 
-  enum { S = internal::traits<T>::OuterStrideAtCompileTime };
+  static constexpr int value = (internal::traits<T>::InnerStrideAtCompileTime == 1);
 
-  enum { S2 = (S == Dynamic ? Dynamic : (int) (S * NumChannels)) };
-  enum { NoOuterStride = (((int)S != Dynamic) && ((int)S == (IsRowMajor ? (int)M : (int)N))) };
+  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC static auto make(std::conditional_t<IsLvalue, T, const T>& arg) {
+    typedef std::conditional_t<NoOuterStride, Stride<0, 0>, Stride<S2, 0>> StrideType;
+    typedef std::conditional_t<IsLvalue, PlainObj2, const PlainObj2> PlainObjectType;
 
-  typedef Array<ChannelType, N2, M2, IsRowMajor ? RowMajorBit : 0, P2, Q2> InternalType;
+    typedef Map<PlainObjectType, Alignment, StrideType> X;
+    typedef std::conditional_t<IsLvalue, X, const X> type;
 
-  typedef typename internal::conditional<NoOuterStride, Stride<0, 0>, Stride<S2, 0> >::type StrideType;
-  typedef Map<typename internal::conditional<internal::is_lvalue<T>::value, InternalType, const InternalType>::type,
-              Alignment, StrideType> non_const_type;
-
-  typedef typename internal::conditional<internal::traits<T>::InnerStrideAtCompileTime == 1,
-      typename internal::conditional<internal::is_lvalue<T>::value, non_const_type, const non_const_type>::type,
-      void>::type type;
-
-  DECLARE_MAKE_FN(T) {
     if (NoOuterStride) {
-      // TODO(ygitman): do I really need this branch?
-      return type((ChannelType*) arg.data(),
-                IsRowMajor ? arg.rows() : arg.rows() * NumChannels,
-                IsRowMajor ? arg.cols() * NumChannels : arg.cols());
+      return type((ChannelType*) arg.data(), IsRowMajor ? arg.rows() : arg.rows() * NumChannels, IsRowMajor ? arg.cols() * NumChannels : arg.cols());
     } else {
-      return type((ChannelType*) arg.data(),
-                IsRowMajor ? arg.rows() : arg.rows() * NumChannels,
-                IsRowMajor ? arg.cols() * NumChannels : arg.cols(),
-                StrideType(arg.outerStride() * NumChannels, 0));
+      return type((ChannelType*) arg.data(), IsRowMajor ? arg.rows() : arg.rows() * NumChannels, IsRowMajor ? arg.cols() * NumChannels : arg.cols(),
+                  std::conditional_t<NoOuterStride, Stride<0, 0>, Stride<S2, 0>>(arg.outerStride() * NumChannels, 0));
     }
   }
-
- protected:
-  Expr2d() {}
 };
 
-template <typename PlainObjectType, typename ScalarType>
-struct Expr2d<CwiseNullaryOp<internal::scalar_random_op<ScalarType>, PlainObjectType>, true, false> {
-  typedef CwiseNullaryOp<internal::scalar_random_op<ScalarType>, PlainObjectType> T;
+template <typename Functor, typename T1, typename T2, typename T3, int cost>
+struct Expr2d<CwiseTernaryOp<internal::LambdaFunctor<cost, Functor>, T1, T2, T3>, true, false> {
+  typedef CwiseTernaryOp<internal::LambdaFunctor<cost, Functor>, T1, T2, T3> ArgType;
+  static constexpr bool arg1_has_expr2d = Expr2d<const T1>::value;
+  static constexpr bool arg2_has_expr2d = Expr2d<const T2>::value;
+  static constexpr bool arg3_has_expr2d = Expr2d<const T3>::value;
+  EIGEN_IMPORT_NUMCHANNELS(typename internal::traits<T1>::Scalar);
 
-  GET_CONSTANTS(PlainObjectType)
+  static constexpr bool value = arg1_has_expr2d && arg2_has_expr2d && arg3_has_expr2d;
 
-  typedef CwiseNullaryOp<internal::scalar_random_op<ChannelType>, Array<ChannelType, N2, M2, 0, P2, Q2> > type;
-
-  static const type make(const T& arg)
-    { return type(IsRowMajor ? arg.rows() : NumChannels * arg.rows(), IsRowMajor ? NumChannels * arg.cols() : arg.cols()); }
+  template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
+  static const auto make(const std::enable_if_t<std::is_same_v<EnableIf, void> && value, ArgType>& v)
+    { return v.functor().template operator()<0>(Expr2d<const T1>::make(v.arg1()), Expr2d<const T2>::make(v.arg2()), Expr2d<const T3>::make(v.arg3())); }
 };
 
-template <typename PlainObjectType, typename ScalarType>
-struct Expr2d<CwiseNullaryOp<internal::scalar_constant_op<ScalarType>, PlainObjectType>, true, false> {
-  typedef CwiseNullaryOp<internal::scalar_constant_op<ScalarType>, PlainObjectType> T;
+template <typename Functor, typename LhsXprType, typename RhsXprType, int cost>
+struct Expr2d<CwiseBinaryOp<internal::LambdaFunctor<cost, Functor>, LhsXprType, RhsXprType>, true, false> {
+  typedef CwiseBinaryOp<internal::LambdaFunctor<cost, Functor>, LhsXprType, RhsXprType> ArgType;
+  EIGEN_IMPORT_NUMCHANNELS(typename internal::traits<LhsXprType>::Scalar);
+  static constexpr bool lhs_has_expr2d = Expr2d<const LhsXprType>::value;
+  static constexpr bool rhs_has_expr2d = Expr2d<const RhsXprType>::value;
+  static constexpr bool value = lhs_has_expr2d && rhs_has_expr2d;
 
-  GET_CONSTANTS(PlainObjectType)
-
-  typedef CwiseNullaryOp<internal::scalar_constant_op<ChannelType>, Array<ChannelType, N2, M2, 0, P2, Q2> > type;
-
-  static const type make(const T& arg)
-    { return type(IsRowMajor ? arg.rows() : NumChannels * arg.rows(), IsRowMajor ? NumChannels * arg.cols() : arg.cols(),
-                  internal::scalar_constant_op<ChannelType>(arg.functor().m_other)); }
+  template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
+  static const auto make(const std::enable_if_t<std::is_same_v<EnableIf, void> && value, ArgType>& v)
+    { return v.functor().template operator()<0>(Expr2d<const LhsXprType>::make(v.lhs()), Expr2d<const RhsXprType>::make(v.rhs())); }
 };
 
-template <template<typename> class Functor, typename XprType>
-struct Expr2d<CwiseUnaryOp<Functor<typename internal::traits<XprType>::Scalar>, XprType>, true, false> {
+template <typename Functor, typename XprType, int cost>
+struct Expr2d<CwiseUnaryOp<internal::LambdaFunctor<cost, Functor>, XprType>, true, false> {
+  typedef CwiseUnaryOp<internal::LambdaFunctor<cost, Functor>, XprType> ArgType;
+  static constexpr bool value = Expr2d<const XprType>::value;
   typedef typename internal::traits<XprType>::Scalar Scalar;
+  EIGEN_IMPORT_NUMCHANNELS(Scalar);
 
-  EIGEN_IMPORT_CHANNELTYPE(Scalar);
-
-  typedef CwiseUnaryOp<Functor<Scalar>, XprType> ArgType;
-  typedef typename Expr2d<const XprType>::type XprType2d;
-
-  typedef typename internal::conditional<
-      internal::is_void<XprType2d>::value, void,
-      CwiseUnaryOp<Functor<ChannelType>, const XprType2d> >::type type;
-
-  static const type make(const ArgType& arg) {
-    return type(Expr2d<const XprType>::make(arg.nestedExpression()));
-  }
+  template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
+  static const auto make(const std::enable_if_t<std::is_same_v<EnableIf, void> && value, ArgType>& v)
+    { return v.functor().template operator()<0>(Expr2d<const XprType>::make(v.nestedExpression())); }
 };
 
-template <typename XprType, typename OldScalar, typename NewScalar>
-struct Expr2d<CwiseUnaryOp<internal::scalar_cast_op<OldScalar, NewScalar>, XprType>, true, false> {
-  typedef typename internal::wrap_scalar<OldScalar>::ChannelType OldChannelType;
-  typedef typename internal::wrap_scalar<NewScalar>::ChannelType NewChannelType;
+template <template<typename, typename DECLARE_OTHER_ARGS_NAMELESS> class Functor,
+          typename LhsXprType, typename RhsXprType, typename T1, typename T2 DECLARE_OTHER_ARGS>
+struct Expr2d<CwiseBinaryOp<Functor<T1, T2 EXPAND_OTHER_ARGS>, LhsXprType, RhsXprType>, true, false> {
+  typedef typename internal::wrap_scalar<typename internal::traits<LhsXprType>::Scalar>::ChannelType X1;
+  typedef typename internal::wrap_scalar<typename internal::traits<RhsXprType>::Scalar>::ChannelType X2;
+  typedef CwiseBinaryOp<Functor<T1, T2 EXPAND_OTHER_ARGS>, LhsXprType, RhsXprType> ArgType;
+  static constexpr bool lhs_has_expr2d = Expr2d<const LhsXprType>::value;
+  static constexpr bool rhs_has_expr2d = Expr2d<const RhsXprType>::value;
+  static constexpr bool value = lhs_has_expr2d && rhs_has_expr2d;
 
-  typedef CwiseUnaryOp<internal::scalar_cast_op<OldScalar, NewScalar>, XprType> ArgType;
-  typedef typename Expr2d<const XprType>::type XprType2d;
+  template <typename Tp1, typename Tp2> EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto makeHelper(const Tp1& arg1, const Tp2& arg2)
+    { return CwiseBinaryOp<Functor<X1, X2 EXPAND_OTHER_ARGS>, const Tp1, const Tp2>(arg1, arg2); }
 
-  typedef typename internal::conditional<
-      internal::is_void<XprType2d>::value, void,
-      CwiseUnaryOp<internal::scalar_cast_op<OldChannelType, NewChannelType>, const XprType2d> >::type type;
-
-  static const type make(const ArgType& arg) {
-    return type(Expr2d<const XprType>::make(arg.nestedExpression()));
-  }
+  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& v)
+    { return makeHelper(Expr2d<const LhsXprType>::make(v.lhs()), Expr2d<const RhsXprType>::make(v.rhs())); }
 };
 
-template <template<typename, typename> class Functor, typename LhsXprType, typename RhsXprType>
-struct Expr2d<CwiseBinaryOp<Functor<typename internal::traits<LhsXprType>::Scalar,
-                                    typename internal::traits<RhsXprType>::Scalar>, LhsXprType, RhsXprType>, true, false> {
-  typedef typename internal::traits<LhsXprType>::Scalar LhsScalar;
-  typedef typename internal::traits<RhsXprType>::Scalar RhsScalar;
+template <template<typename DECLARE_OTHER_ARGS_NAMELESS> class Functor, typename XprType DECLARE_OTHER_ARGS>
+struct Expr2d<CwiseUnaryOp<Functor<typename internal::traits<XprType>::Scalar EXPAND_OTHER_ARGS>, XprType>, true, false> {
+  typedef CwiseUnaryOp<Functor<typename internal::traits<XprType>::Scalar EXPAND_OTHER_ARGS>, XprType> ArgType;
+  EIGEN_IMPORT_CHANNELTYPE(typename internal::traits<XprType>::Scalar);
+  static constexpr bool value = Expr2d<const XprType>::value;
 
-  typedef typename internal::wrap_scalar<LhsScalar>::ChannelType LhsChannelType;
-  typedef typename internal::wrap_scalar<RhsScalar>::ChannelType RhsChannelType;
+  template <typename Tp> EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto makeHelper(const Tp& arg)
+    { return CwiseUnaryOp<Functor<ChannelType EXPAND_OTHER_ARGS>, const Tp>(arg); }
 
-  typedef CwiseBinaryOp<Functor<LhsScalar, RhsScalar>, LhsXprType, RhsXprType> ArgType;
-
-  typedef typename Expr2d<const LhsXprType>::type LhsXprType2d;
-  typedef typename Expr2d<const RhsXprType>::type RhsXprType2d;
-
-  typedef typename internal::conditional<
-      internal::is_void<LhsXprType2d>::value || internal::is_void<RhsXprType2d>::value, void,
-      CwiseBinaryOp<Functor<LhsChannelType, RhsChannelType>, const LhsXprType2d, const RhsXprType2d> >::type type;
-
-  static const type make(const ArgType& arg) {
-    // This seems to skip compilation in the void case, interesting.
-    return type(Expr2d<const LhsXprType>::make(arg.lhs()), Expr2d<const RhsXprType>::make(arg.rhs()));
-  }
+  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& arg)
+    { return makeHelper(Expr2d<const XprType>::make(arg.nestedExpression())); }
 };
 
-// min, max
-template <template<typename, typename, int> class Functor, typename LhsXprType, typename RhsXprType, int IntArg>
-struct Expr2d<CwiseBinaryOp<Functor<typename internal::traits<LhsXprType>::Scalar,
-                                    typename internal::traits<RhsXprType>::Scalar, IntArg>, LhsXprType, RhsXprType>, true, false> {
-  typedef typename internal::traits<LhsXprType>::Scalar LhsScalar;
-  typedef typename internal::traits<RhsXprType>::Scalar RhsScalar;
+template <template <typename> class Func, typename PlainObjectType, typename ScalarType>
+struct Expr2d<CwiseNullaryOp<Func<ScalarType>, PlainObjectType>, true, false> {
+  typedef CwiseNullaryOp<Func<ScalarType>, PlainObjectType> ArgType;
+  static constexpr bool value = true;
+  GET_CONSTANTS(PlainObjectType)
 
-  typedef typename internal::wrap_scalar<LhsScalar>::ChannelType LhsChannelType;
-  typedef typename internal::wrap_scalar<RhsScalar>::ChannelType RhsChannelType;
-
-  typedef CwiseBinaryOp<Functor<LhsScalar, RhsScalar, IntArg>, LhsXprType, RhsXprType> ArgType;
-
-  typedef typename Expr2d<const LhsXprType>::type LhsXprType2d;
-  typedef typename Expr2d<const RhsXprType>::type RhsXprType2d;
-
-  typedef typename internal::conditional<
-      internal::is_void<LhsXprType2d>::value || internal::is_void<RhsXprType2d>::value, void,
-      CwiseBinaryOp<Functor<LhsChannelType, RhsChannelType, IntArg>, const LhsXprType2d, const RhsXprType2d> >::type type;
-
-  static const type make(const ArgType& arg) {
-    // This seems to skip compilation in the void case, interesting.
-    return type(Expr2d<const LhsXprType>::make(arg.lhs()), Expr2d<const RhsXprType>::make(arg.rhs()));
+  EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& arg) {
+    const Index rows = arg.rows() * (IsRowMajor ? 1 : NumChannels);
+    const Index cols = arg.cols() * (IsRowMajor ? NumChannels : 1);
+    return CwiseNullaryOp<Func<ChannelType>, PlainObj2>(rows, cols, arg.functor());
   }
 };
-
-
-#define DEFINE_BOOLEAN_EXPR2D(op)                                                                                          \
-  template <typename LhsXprType, typename RhsXprType>                                                                      \
-  struct Expr2d<CwiseBinaryOp<internal::scalar_boolean_##op##_op_nc<typename internal::traits<LhsXprType>::Scalar>, LhsXprType, RhsXprType>, true, false> {   \
-    typedef typename Expr2d<const LhsXprType>::type LhsXprType2d;                                                          \
-    typedef typename Expr2d<const RhsXprType>::type RhsXprType2d;                                                          \
-    typedef typename internal::traits<LhsXprType>::Scalar LhsScalar;                                                       \
-    typedef typename internal::wrap_scalar<LhsScalar>::ChannelType LhsChannelType;                                         \
-                                                                                                                           \
-    typedef CwiseBinaryOp<internal::scalar_boolean_##op##_op_nc<LhsScalar>, LhsXprType, RhsXprType> ArgType;               \
-                                                                                                                           \
-    typedef typename internal::conditional<                                                                                \
-        internal::is_void<LhsXprType2d>::value || internal::is_void<RhsXprType2d>::value, void,                            \
-        CwiseBinaryOp<internal::scalar_boolean_##op##_op, const LhsXprType2d, const RhsXprType2d> >::type type;            \
-                                                                                                                           \
-    static const type make(const ArgType& arg) {                                                                           \
-      /* This seems to skip compilation in the void case, interesting. */                                                  \
-      return type(Expr2d<const LhsXprType>::make(arg.lhs()), Expr2d<const RhsXprType>::make(arg.rhs()));                   \
-    }                                                                                                                      \
-  };
-
-#define DEFINE_BITWISE_EXPR2D(op)                                                                                          \
-  template <typename LhsXprType, typename RhsXprType>                                                                      \
-  struct Expr2d<CwiseBinaryOp<internal::scalar_bitwise_##op##_op<typename internal::traits<LhsXprType>::Scalar>, LhsXprType, RhsXprType>, true, false> {   \
-    typedef typename Expr2d<const LhsXprType>::type LhsXprType2d;                                                          \
-    typedef typename Expr2d<const RhsXprType>::type RhsXprType2d;                                                          \
-    typedef typename internal::traits<LhsXprType>::Scalar LhsScalar;                                                       \
-    typedef typename internal::wrap_scalar<LhsScalar>::ChannelType LhsChannelType;                                         \
-                                                                                                                           \
-    typedef CwiseBinaryOp<internal::scalar_bitwise_##op##_op<LhsScalar>, LhsXprType, RhsXprType> ArgType;                  \
-                                                                                                                           \
-    typedef typename internal::conditional<                                                                                \
-        internal::is_void<LhsXprType2d>::value || internal::is_void<RhsXprType2d>::value, void,                            \
-        CwiseBinaryOp<internal::scalar_bitwise_##op##_op<LhsChannelType>, const LhsXprType2d, const RhsXprType2d> >::type type; \
-                                                                                                                           \
-    static const type make(const ArgType& arg) {                                                                           \
-      /* This seems to skip compilation in the void case, interesting. */                                                  \
-      return type(Expr2d<const LhsXprType>::make(arg.lhs()), Expr2d<const RhsXprType>::make(arg.rhs()));                   \
-    }                                                                                                                      \
-  };
-
-template <typename LhsXprType, typename RhsXprType, internal::ComparisonName CmpType>
-struct Expr2d<CwiseBinaryOp<internal::scalar_cmp_op<typename internal::traits<LhsXprType>::Scalar,
-                                                    typename internal::traits<RhsXprType>::Scalar, CmpType>, LhsXprType, RhsXprType>, true, false> {
-  typedef typename Expr2d<const LhsXprType>::type LhsXprType2d;
-  typedef typename Expr2d<const RhsXprType>::type RhsXprType2d;
-
-  typedef typename internal::wrap_scalar<typename internal::traits<LhsXprType>::Scalar>::ChannelType LhsChannelType;
-  typedef typename internal::wrap_scalar<typename internal::traits<RhsXprType>::Scalar>::ChannelType RhsChannelType;
-
-  typedef CwiseBinaryOp<internal::scalar_cmp_op<typename internal::traits<LhsXprType>::Scalar,
-                                                typename internal::traits<RhsXprType>::Scalar, CmpType>, LhsXprType, RhsXprType> ArgType;
-
-  typedef typename internal::conditional<
-      internal::is_void<LhsXprType2d>::value || internal::is_void<RhsXprType2d>::value, void,
-      CwiseBinaryOp<internal::scalar_cmp_op<LhsChannelType, RhsChannelType, CmpType>, const LhsXprType2d, const RhsXprType2d> >::type type;
-
-  static const type make(const ArgType& arg) {
-    /* This seems to skip compilation in the void case, interesting. */
-    typedef typename internal::remove_all<decltype(arg.lhs())>::type LHS_T;
-    typedef typename internal::remove_all<decltype(arg.rhs())>::type RHS_T;
-    return type(Expr2d<const LhsXprType>::make(arg.lhs()), Expr2d<const RhsXprType>::make(arg.rhs()));
-  }
-};
-
-DEFINE_BOOLEAN_EXPR2D(and)
-DEFINE_BOOLEAN_EXPR2D(or)
-
-DEFINE_BITWISE_EXPR2D(xor)
-DEFINE_BITWISE_EXPR2D(and)
-DEFINE_BITWISE_EXPR2D(or)
 
 template <typename XprType, int N, int M, int Order>
 struct Expr2d<Reshaped<XprType, N, M, Order>, true, false> {
-  typedef typename Expr2d<const XprType>::type XprType2d;
+  static constexpr bool IsRowMajor = (internal::traits<XprType>::Flags & RowMajorBit);
 
+  static constexpr Index getRows(Index v)
+    { return (N != 1 && (!IsRowMajor || M == 1) ? v * NumChannels : v); }
+
+  static constexpr Index getCols(Index v)
+    { return (M != 1 && (IsRowMajor || N == 1) ? v * NumChannels : v); }
+
+  static constexpr bool value = Expr2d<const XprType>::value;
   typedef typename internal::traits<XprType>::Scalar Scalar;
-  typedef typename internal::wrap_scalar<Scalar>::ChannelType ChannelType;
+  EIGEN_IMPORT_NUMCHANNELS(Scalar);
+
+  static constexpr int V1 = N == Dynamic ? Dynamic : getRows(N);
+  static constexpr int V2 = M == Dynamic ? Dynamic : getCols(M);
 
   typedef Reshaped<XprType, N, M, Order> ArgType;
 
-  enum { NumChannels = internal::wrap_scalar<Scalar>::SizeAtCompileTime };
-  enum { IsRowMajor = internal::traits<XprType>::Flags & RowMajorBit };
+  template <typename Tp> EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto makeHelper(const Tp& v, Index rows, Index cols)
+    { return Reshaped<const Tp, V1, V2, Order>(v, rows, cols); }
 
-  typedef typename internal::conditional<
-      internal::is_void<XprType2d>::value, void,
-      Reshaped<XprType2d,
-        N == Dynamic ? Dynamic : (N != 1 && (!IsRowMajor || M == 1) ? N * NumChannels : N),
-        M == Dynamic ? Dynamic : (M != 1 && (IsRowMajor || N == 1) ? M * NumChannels : M),
-        Order> >::type type;
-
-  static const type make(const ArgType& arg) {
-    /* This seems to skip compilation in the void case, interesting. */
-    return type(Expr2d<const XprType>::make(arg.nestedExpression()),
-                N != 1 && (!IsRowMajor || M == 1) ? arg.rows() * NumChannels : arg.rows(),
-                M != 1 && (IsRowMajor || N == 1) ? arg.cols() * NumChannels : arg.cols());
-  }
-};
-
-template <typename XprType, template<typename, typename> class Functor, typename ResultType>
-struct Expr2d<PartialReduxExpr<XprType, Functor<typename internal::traits<XprType>::Scalar, ResultType>,
-    internal::traits<XprType>::Flags & RowMajorBit ? Vertical : Horizontal>, true, false> {
-  typedef typename Expr2d<const XprType>::type XprType2d;
-
-  typedef typename internal::traits<XprType>::Scalar Scalar;
-  typedef typename internal::wrap_scalar<Scalar>::ChannelType InputChannelType;
-  typedef typename internal::wrap_scalar<ResultType>::ChannelType ResultChannelType;
-
-  enum { Direction = internal::traits<XprType>::Flags & RowMajorBit ? Vertical : Horizontal };
-
-  typedef PartialReduxExpr<XprType, Functor<Scalar, ResultType>, Direction> ArgType;
-
-  typedef typename internal::conditional<
-      internal::is_void<XprType2d>::value, void,
-      PartialReduxExpr<const XprType2d, Functor<InputChannelType, ResultChannelType>, Direction> >::type type;
-
-  static const type make(const ArgType& arg) {
-    /* This seems to skip compilation in the void case, interesting. */
-    return type(Expr2d<const XprType>::make(arg.nestedExpression()));
-  }
-};
-
-template <typename XprType, template<typename, typename> class Functor, typename ResultType>
-struct Expr2d<PartialReduxExpr<XprType, Functor<typename internal::traits<XprType>::Scalar, ResultType>,
-    internal::traits<XprType>::Flags & RowMajorBit ? Horizontal : Vertical>, true, false> {
-  enum { Direction = internal::traits<XprType>::Flags & RowMajorBit ? Vertical : Horizontal };
-  typedef PartialReduxExpr<XprType, Functor<typename internal::traits<XprType>::Scalar, ResultType>, Direction> ArgType;
-  typedef void type; static void make(const ArgType&) {}
-};
-
-template <typename ConditionXprType, typename ThenXprType, typename ElseXprType>
-struct Expr2d<SelectNC<ConditionXprType, ThenXprType, ElseXprType>, true, false> {
-  typedef typename Expr2d<const ConditionXprType>::type ConditionXprType2d;
-  typedef typename Expr2d<const ThenXprType>::type ThenXprType2d;
-  typedef typename Expr2d<const ElseXprType>::type ElseXprType2d;
-
-  typedef SelectNC<ConditionXprType, ThenXprType, ElseXprType> ArgType;
-
-  typedef typename internal::conditional<
-      internal::is_void<ConditionXprType2d>::value || internal::is_void<ThenXprType2d>::value || internal::is_void<ElseXprType2d>::value, void,
-      Select<const ConditionXprType2d, const ThenXprType2d, const ElseXprType2d> >::type type;
-
-  static const type make(const ArgType& arg) {
-    /* This seems to skip compilation in the void case, interesting. */
-    return type(Expr2d<const ConditionXprType>::make(arg.conditionMatrix()),
-                Expr2d<const ThenXprType>::make(arg.thenMatrix()),
-                Expr2d<const ElseXprType>::make(arg.elseMatrix()));
-  }
-};
-
-template <typename XprType, typename IndexingExpr1, typename IndexingExpr2>
-struct Expr2d<IndexedView<XprType, IndexingExpr1, IndexingExpr2>, true, false> {
-  typedef IndexedView<XprType, IndexingExpr1, IndexingExpr2> ArgType;
-  typedef void type; static void make(const ArgType&) {}
+  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& v)
+    { return makeHelper(Expr2d<const XprType>::make(v.nestedExpression()), getRows(v.rows()), getCols(v.cols())); }
 };
 
 template <typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
 struct Expr2d<Block<XprType, BlockRows, BlockCols, InnerPanel>, true, false> {
-  typedef typename Expr2d<const XprType>::type XprType2d;
   typedef Block<XprType, BlockRows, BlockCols, InnerPanel> ArgType;
+  static constexpr bool value = Expr2d<const XprType>::value;
+  GET_CONSTANTS(XprType)
 
-  typedef typename internal::traits<XprType>::Scalar Scalar;
-  enum { NumChannels = internal::wrap_scalar<Scalar>::SizeAtCompileTime };
-  enum { IsRowMajor = internal::traits<XprType>::Flags & RowMajorBit };
-  enum { N = internal::traits<XprType>::RowsAtCompileTime };
-  enum { M = internal::traits<XprType>::ColsAtCompileTime };
+  static constexpr Index getRows(Index v)
+    { return (N != 1 && (!IsRowMajor || M == 1) ? v * NumChannels : v); }
 
-  enum { BlockRows2d = (BlockRows == Dynamic ? Dynamic : (N != 1 && (IsRowMajor || M == 1) ? BlockRows * NumChannels : BlockRows))};
-  enum { BlockCols2d = (BlockCols == Dynamic ? Dynamic : (M != 1 && (!IsRowMajor || N == 1) ? BlockCols * NumChannels : BlockCols))};
+  static constexpr Index getCols(Index v)
+    { return (M != 1 && (IsRowMajor || N == 1) ? v * NumChannels : v); }
 
-  typedef typename internal::conditional<
-      internal::is_void<XprType2d>::value, void,
-      Block<const XprType2d, BlockRows2d, BlockCols2d, InnerPanel> >::type type;
+  static constexpr int BlockRows2d = (BlockRows == Dynamic ? Dynamic : getRows(BlockRows));
+  static constexpr int BlockCols2d = (BlockCols == Dynamic ? Dynamic : getCols(BlockCols));
 
-  static const type make(const ArgType& arg) {
-    /* This seems to skip compilation in the void case, interesting. */
-    return type(Expr2d<const XprType>::make(arg.nestedExpression()),
-                (N != 1 && (IsRowMajor || M == 1)) ? arg.startRow() * NumChannels : arg.startRow(),
-                (M != 1 && (!IsRowMajor || N == 1)) ? arg.startCol() * NumChannels : arg.startCol(),
-                (N != 1 && (IsRowMajor || M == 1)) ? arg.rows() * NumChannels : arg.rows(),
-                (M != 1 && (!IsRowMajor || N == 1)) ? arg.cols() * NumChannels : arg.cols());
-  }
+  template <typename Tp> EIGEN_STRONG_INLINE_DEVICE_FUNC
+  static const auto makeHelper(const Tp& v, int startRow, int startCol, int rows, int cols)
+    { return Block<const Tp, BlockRows2d, BlockCols2d, InnerPanel>(v, startRow, startCol, rows, cols); }
+
+  template <typename EnableIf=void, std::enable_if_t<std::is_same_v<EnableIf, void> && value, int> = 0>
+  EIGEN_STRONG_INLINE_DEVICE_FUNC static const auto make(const ArgType& v)
+    { return makeHelper(Expr2d<const XprType>::make(v.nestedExpression()),
+                        getRows(v.startRow()), getCols(v.startCol()),
+                        getRows(v.rows()), getCols(v.cols())); }
 };
 
-template <int N, typename XprType>
-struct Expr2d<ChannelwiseReplicate<N, XprType>, true, false> {
-  typedef ChannelwiseReplicate<N, XprType> ArgType;
-  typedef void type; static void make(const ArgType&) {}
+template <typename T, class ReduxFunctor>
+struct Expr2d<PartialReduxExpr<T, ReduxFunctor, internal::traits<T>::Flags & RowMajorBit ? Vertical : Horizontal>, true, false> {
+  typedef PartialReduxExpr<T, ReduxFunctor, internal::traits<T>::Flags & RowMajorBit ? Vertical : Horizontal> ArgType;
+  static constexpr bool value = Expr2d<const T>::value;
+
+  template <typename EnableIf=void> EIGEN_STRONG_INLINE_DEVICE_FUNC
+  static const auto make(const std::enable_if_t<std::is_same_v<EnableIf, void> && value, ArgType>& arg)
+    { return arg.functor()(Expr2d<const T>::make(arg.nestedExpression()).alongOuterDim()); }
 };
+
+// Expressions below aren't possible to do in 2D world without some very fancy indexing
+
+template <typename XprType, typename Functor>
+struct Expr2d<PartialReduxExpr<XprType, Functor, internal::traits<XprType>::Flags & RowMajorBit ? Horizontal : Vertical>, true, false>
+  { static constexpr bool value = false; };
+
+template <typename XprType, typename Func, int v, int cnd>
+struct Expr2d<CwiseUnaryOp<internal::ChannelwiseFunctor<v, cnd, Func>, XprType>, true, false>
+  { static constexpr bool value = false; };
+
+template <typename XprType, typename IndexingExpr1, typename IndexingExpr2>
+struct Expr2d<IndexedView<XprType, IndexingExpr1, IndexingExpr2>, true, false>
+  { static constexpr bool value = false; };
 
 // TODO(ygitman): other expressions (reverse, transpose, ...)?
 
 namespace internal {
 
-#undef /***/ DEFINE_BOOLEAN_EXPR2D
-#undef /***/ DEFINE_BITWISE_EXPR2D
-#undef /***/ DECLARE_MAKE_FN
-#undef /***/ MAKE_FN_ARG_TP
-#undef /***/ GET_CONSTANTS
+#undef DECLARE_OTHER_ARGS_NAMELESS
+#undef DECLARE_OTHER_ARGS
+#undef EXPAND_OTHER_ARGS
+#undef GET_CONSTANTS

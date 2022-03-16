@@ -34,10 +34,8 @@ struct CV_Traits {
   typedef typename ElemType<DepthId>::Tx ChannelType;
   typedef Array<ChannelType, NumDims, 1> NDScalar;
 
-  typedef typename conditional<(NumDims == 1),
-      ChannelType, NDScalar>::type Scalar;
-
-  typedef Map<Array<Scalar, N, M, LayoutFlag> > MapT;
+  typedef std::conditional_t<(NumDims == 1), ChannelType, NDScalar> Scalar;
+  typedef Map<Array<Scalar, N, M, LayoutFlag>> MapT;
 };
 
 }  // namespace internal
@@ -63,26 +61,17 @@ auto MakeMap(const cv::Mat& arg) {
   return MapT((typename MapT::Scalar*) arg.data, N, M);
 }
 
-namespace /***/ internal {
+namespace internal {
 
 class OpenCVInputArrayHold : public cv::_InputArray {
   cv::Mat obj;
 
-#ifndef /**/ EIGEN_NO_DEBUG
+#ifndef EIGEN_NO_DEBUG
   int rows_;
   int cols_;
 #endif    // EIGEN_NO_DEBUG
 
  public:
-  OpenCVInputArrayHold(int rows, int cols, int type, const void* data)
-    : cv::_InputArray(obj),  obj(rows, cols, type, const_cast<void*>(data)) {
-
-#ifndef /**/ EIGEN_NO_DEBUG
-    rows_ = rows;
-    cols_ = cols;
-#endif    // EIGEN_NO_DEBUG
-    }
-
   template <typename Derived>
   OpenCVInputArrayHold(int rows, int cols, int type, const ArrayBase<Derived>& expr)
     : cv::_InputArray(obj),  obj(rows, cols, type) {
@@ -90,14 +79,23 @@ class OpenCVInputArrayHold : public cv::_InputArray {
     typename Derived::Scalar* data = (typename Derived::Scalar*) obj.data;
     Map<typename Derived::PlainObject>(data, rows, cols) = expr;
 
-#ifndef /**/ EIGEN_NO_DEBUG
+#ifndef EIGEN_NO_DEBUG
+    rows_ = rows;
+    cols_ = cols;
+#endif    // EIGEN_NO_DEBUG
+    }
+
+  OpenCVInputArrayHold(int rows, int cols, int type, const void* data)
+    : cv::_InputArray(obj),  obj(rows, cols, type, const_cast<void*>(data)) {
+
+#ifndef EIGEN_NO_DEBUG
     rows_ = rows;
     cols_ = cols;
 #endif    // EIGEN_NO_DEBUG
     }
 
   ~OpenCVInputArrayHold() {
-#ifndef /**/ EIGEN_NO_DEBUG
+#ifndef EIGEN_NO_DEBUG
     eigen_assert(rows_ == obj.rows && cols_ == obj.cols);
 #endif    // EIGEN_NO_DEBUG
   }
@@ -106,7 +104,7 @@ class OpenCVInputArrayHold : public cv::_InputArray {
 class OpenCVOutputArrayHold : public cv::_OutputArray {
   cv::Mat obj;
 
-#ifndef /**/ EIGEN_NO_DEBUG
+#ifndef EIGEN_NO_DEBUG
   int rows_;
   int cols_;
 #endif    // EIGEN_NO_DEBUG
@@ -115,7 +113,7 @@ class OpenCVOutputArrayHold : public cv::_OutputArray {
   OpenCVOutputArrayHold(int rows, int cols, int type, void* data)
     : cv::_OutputArray(obj), obj(rows, cols, type, (void*) data) {
 
-#ifndef /**/ EIGEN_NO_DEBUG
+#ifndef EIGEN_NO_DEBUG
     rows_ = rows;
     cols_ = cols;
 #endif    // EIGEN_NO_DEBUG
@@ -124,7 +122,7 @@ class OpenCVOutputArrayHold : public cv::_OutputArray {
   // OpenCV unfortunately doesn't provide a way
   // to ensure that matrix is non-resizable
   ~OpenCVOutputArrayHold() {
-#ifndef /**/ EIGEN_NO_DEBUG
+#ifndef EIGEN_NO_DEBUG
     eigen_assert(rows_ == obj.rows && cols_ == obj.cols);
 #endif    // EIGEN_NO_DEBUG
   }

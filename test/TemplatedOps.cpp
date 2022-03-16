@@ -21,10 +21,9 @@ INIT_TEST(TEMPLATED_OPS_A, All_Test_Types)
   const auto& rowwiseSum = A.rowwise().sum().eval();
   EXPECT_APPROX(A.template dimwise<1>().sum(), rowwiseSum);
 
-  EXPECT_FALSE((bool(decltype(A)::Flags&Eigen::RowMajorBit)
-               ^ A.isRowMajor()));
-  EXPECT_TRUE((bool(decltype(A)::Flags&Eigen::RowMajorBit)
-              ^ A.isColMajor()));
+  bool isRowMajor = decltype(A)::Flags&Eigen::RowMajorBit;
+  EXPECT_FALSE((isRowMajor ^ A.isRowMajor()));
+  EXPECT_TRUE((isRowMajor ^ A.isColMajor()));
 }
 
 #if !defined(__clang__)

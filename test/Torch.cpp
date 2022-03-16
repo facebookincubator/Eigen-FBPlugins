@@ -2,7 +2,7 @@
 
 #include "CommonHeader.h"  // Common definitions
 
-#ifdef/**/EIGEN_WITH_TORCH
+#ifdef EIGEN_WITH_TORCH
 
 template <typename> struct data_traits;
 

@@ -7,8 +7,9 @@ EIGEN_IMPORT_NUMCHANNELS(/**/Scalar/**/)
 #include "./densebase/Arithmetic.h"
 #include "./densebase/MissingOps.h"
 #include "./densebase/Indexing.h"
+#include "./densebase/Stats.h"
 #include "./densebase/IO.h"
 
-#ifdef /**/ EIGEN_DENSEBASE_EXTRA_PLUGIN
+#ifdef EIGEN_DENSEBASE_EXTRA_PLUGIN
 #  include EIGEN_DENSEBASE_EXTRA_PLUGIN
-#endif   // EIGEN_DENSEBASE_EXTRA_PLUGIN
+#endif

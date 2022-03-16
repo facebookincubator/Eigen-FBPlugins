@@ -1,7 +1,5 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
-#if /**/ EIGEN_VERSION_AT_LEAST(3, 3, 9)
-
 } // namespace internal
 
 template <Index Value=Dynamic>                           \
@@ -33,7 +31,7 @@ template <Index Value=Dynamic>
 Subsample<Value> subsample(int value = Value)
   { return Subsample<Value>(value); }
 
-namespace /***/ internal {
+namespace internal {
 
 template <int XprSize, Index A, Index B>
 struct CropPadsExpr {
@@ -108,5 +106,3 @@ makeIndexedViewCompatible(const Subsample<Value>& expr, XprSizeType size, Specia
 DEFINE_PADEXPR_INDEXING_INTERFACE(Crop)
 
 #undef DEFINE_PADEXPR_INDEXING_INTERFACE
-
-#endif // EIGEN_VERSION_AT_LEAST(3, 3, 9)

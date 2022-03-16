@@ -2,8 +2,6 @@
 
 #include "CommonHeader.h"  // Common definitions
 
-#if /**/ EIGEN_VERSION_AT_LEAST(3, 3, 9)
-
 #if !defined(__clang__)
 INIT_TEST(CROP_PADS, Types_F32_AnyMajor)
 #else
@@ -23,5 +21,3 @@ INIT_TEST(CROP_PADS, All_Test_Types)
   EXPECT_APPROX(B, A.block(0, b, 3, 7 - (b + d)));
   EXPECT_APPROX(C, A.block(a, 2, 4 - (a + c), 5));
 }
-
-#endif // EIGEN_VERSION_AT_LEAST(3, 3, 9)

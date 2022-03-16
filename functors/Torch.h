@@ -52,4 +52,4 @@ auto MakeMap(const torch::Tensor& arg) {
   return internal::MakeMapImpl<Tpx, 1>::run(arg);
 }
 
-namespace /***/ internal {
+namespace internal {

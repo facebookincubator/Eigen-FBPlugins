@@ -1,15 +1,38 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
-#define /**/ ASSERT_BOOLEAN_SCALAR                                                                                                 \
-  EIGEN_STATIC_ASSERT((internal::is_same<bool, typename internal::wrap_scalar<typename OtherDerived::Scalar>::ChannelType>::value  \
-                    && internal::is_same<bool, ChannelType>::value), THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
+#define DEFINE_OP(op, cost)                                                                                                 \
+  template <typename OtherDerived> EIGEN_STRONG_INLINE_DEVICE_FUNC                                                          \
+  const auto op(const ArrayBaseNC<OtherDerived>& arg) const {                                                               \
+    const auto& fn = [](const auto& x, const auto& y) EIGEN_LAMBDA_INLINE { return internal::ops::op(x, y); };              \
+    return derived().binaryExpr(arg.derived(), internal::make_functor<cost>(fn));                                           \
+  }
 
-template <typename OtherDerived> EIGEN_STRONG_INLINE_DEVICE_FUNC
-const CwiseBinaryOp<internal::scalar_boolean_and_op_nc<Scalar>, Derived, OtherDerived> operator &&(const ArrayBaseNC<OtherDerived>& arg) const
-  { ASSERT_BOOLEAN_SCALAR; return CwiseBinaryOp<internal::scalar_boolean_and_op_nc<Scalar>, Derived, OtherDerived>(derived(), arg.derived()); }
+#define DEFINE_OPERATOR(op, cost)                                                                                           \
+  template <typename OtherDerived>                                                                                          \
+  EIGEN_STRONG_INLINE_DEVICE_FUNC const auto op(const ArrayBaseNC<OtherDerived>& arg) const {                               \
+    const auto& fn = [](const auto& x, const auto& y) EIGEN_LAMBDA_INLINE { return x.op(y); };                              \
+    return derived().binaryExpr(arg.derived(), internal::make_functor<cost>(fn));                                           \
+  }
 
-template <typename OtherDerived> EIGEN_STRONG_INLINE_DEVICE_FUNC
-const CwiseBinaryOp<internal::scalar_boolean_or_op_nc<Scalar>, Derived, OtherDerived>  operator ||(const ArrayBaseNC<OtherDerived>& arg) const
-  { ASSERT_BOOLEAN_SCALAR; return CwiseBinaryOp<internal::scalar_boolean_or_op_nc<Scalar>, Derived, OtherDerived>(derived(),  arg.derived()); }
+DEFINE_OPERATOR(operator ==, NumTraits<Scalar>::AddCost)
+DEFINE_OPERATOR(operator !=, NumTraits<Scalar>::AddCost)
+DEFINE_OPERATOR(operator <=, NumTraits<Scalar>::AddCost)
+DEFINE_OPERATOR(operator >=, NumTraits<Scalar>::AddCost)
+DEFINE_OPERATOR(operator <, NumTraits<Scalar>::AddCost)
+DEFINE_OPERATOR(operator >, NumTraits<Scalar>::AddCost)
 
-#undef /***/ ASSERT_BOOLEAN_SCALAR
+DEFINE_OPERATOR(operator +, NumTraits<Scalar>::AddCost)
+DEFINE_OPERATOR(operator -, NumTraits<Scalar>::AddCost)
+DEFINE_OPERATOR(operator *, NumTraits<Scalar>::MulCost)
+DEFINE_OPERATOR(operator /, NumTraits<Scalar>::MulCost)
+DEFINE_OPERATOR(operator &, NumTraits<Scalar>::MulCost)
+DEFINE_OPERATOR(operator |, NumTraits<Scalar>::MulCost)
+DEFINE_OPERATOR(operator ^, NumTraits<Scalar>::MulCost)
+
+DEFINE_OP(pow, 5 * NumTraits<Scalar>::MulCost)
+
+DEFINE_OP(min, NumTraits<Scalar>::AddCost)
+DEFINE_OP(max, NumTraits<Scalar>::AddCost)
+
+#undef DEFINE_OPERATOR
+#undef DEFINE_OP

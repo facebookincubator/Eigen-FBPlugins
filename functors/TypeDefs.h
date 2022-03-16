@@ -32,4 +32,4 @@ typedef Array<unsigned char, 4, 1, 0, 4, 1> Array4u;
 typedef Array<unsigned char, 3, 1, 0, 3, 1> Array3u;
 typedef Array<unsigned char, 2, 1, 0, 2, 1> Array2u;
 
-namespace /***/ internal {
+namespace internal {

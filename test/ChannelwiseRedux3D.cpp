@@ -1,10 +1,10 @@
 // Copyright (c) Facebook, Inc. and its affiliates.
 
-#ifdef /***/ EIGEN_FAIL_ON_EXPR2D
-#undef /***/ EIGEN_FAIL_ON_EXPR2D
-#endif /**///EIGEN_FAIL_ON_EXPR2D
+#ifdef EIGEN_FAIL_ON_EXPR2D
+#undef EIGEN_FAIL_ON_EXPR2D
+#endif
 
-#include "CommonHeader.h"  // Common definitions
+#include "CommonHeader.h"
 
 #define TEST_CHANNELWISE_REDUX(fn)                                    \
   EXPECT_APPROX(A.unaryExpr([] (const Scalar& x) { return x.fn(); }), \

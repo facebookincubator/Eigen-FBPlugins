@@ -24,4 +24,4 @@ auto max(const ArrayBase<Tp1>& arg1, const ArrayBase<Tp2>& arg2) {
   return arg1.derived().max(arg2.derived());
 }
 
-namespace /***/ internal {
+namespace internal {

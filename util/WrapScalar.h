@@ -2,43 +2,26 @@
 
 template <typename Scalar> struct wrap_scalar;
 
-template <typename Scalar>
-struct wrap_scalar {
-  template <class Tp> struct CastXpr
-    { struct Type { typedef Tp EvalReturnType; }; };
+template <typename Tp, int ...OtherArgs>
+struct wrap_scalar<Array<Tp, OtherArgs...>> {
+#ifdef EIGEN_WITH_OPENCV
+  static constexpr int has_cv2_type = cv::traits::SafeType<typename Array<Tp, OtherArgs...>::Scalar>::value != CV_MAKETYPE(-1, 1);
+  static constexpr int cv2_depth_id = has_cv2_type ? (cv::traits::SafeType<typename Array<Tp, OtherArgs...>::Scalar>::value) : -1;
+  static constexpr int cv2_type_id = has_cv2_type ? CV_MAKETYPE(cv2_depth_id, (Array<Tp, OtherArgs...>::SizeAtCompileTime)) : -1;
+#endif
 
-  typedef Scalar ChannelType;
-
-  enum { IsVectorAtCompileTime = 1 };
-  enum { SizeAtCompileTime = 1 };
-  enum { NumChannels = 1 };
-
-#ifdef /**/ EIGEN_WITH_OPENCV
-  enum { cv2_depth_id = cv::traits::SafeType<ChannelType>::value != CV_MAKETYPE(-1, 1) ? cv::traits::SafeType<ChannelType>::value : -1};
-  enum { cv2_type_id = cv2_depth_id };
-#endif   // EIGEN_WITH_OPENCV
+  static constexpr int NumChannels = Array<Tp, OtherArgs...>::SizeAtCompileTime;
+  typedef typename Array<Tp, OtherArgs...>::Scalar ChannelType;
 };
 
-template <typename Tp, int N, int M, int Options, int P, int Q>
-struct wrap_scalar<Array<Tp, N, M, Options, P, Q> > {
-  typedef Array<Tp, N, M, Options, P, Q> Scalar;
+template <typename Scalar>
+struct wrap_scalar {
+#ifdef EIGEN_WITH_OPENCV
+  static constexpr int has_cv2_type = cv::traits::SafeType<Scalar>::value != CV_MAKETYPE(-1, 1);
+  static constexpr int cv2_depth_id = has_cv2_type ? cv::traits::SafeType<Scalar>::value : -1;
+  static constexpr int cv2_type_id = cv2_depth_id;
+#endif
 
-  template <class DstType> struct CastXpr {
-    struct Type {
-      typedef typename Scalar::template CastXpr<DstType>::Type CastType;
-      typedef typename remove_all<CastType>::type CastTypeCleaned;
-      typedef typename CastTypeCleaned::EvalReturnType EvalReturnType;
-    };
-  };
-
-  typedef typename Scalar::Scalar ChannelType;
-
-  enum { IsVectorAtCompileTime = Scalar::IsVectorAtCompileTime };
-  enum { SizeAtCompileTime = Scalar::SizeAtCompileTime };
-  enum { NumChannels = Scalar::SizeAtCompileTime };
-
-#ifdef /**/ EIGEN_WITH_OPENCV
-  enum { cv2_depth_id = cv::traits::SafeType<ChannelType>::value != CV_MAKETYPE(-1, 1) ? cv::traits::SafeType<ChannelType>::value : -1};
-  enum { cv2_type_id = cv2_depth_id == -1 ? -1 : CV_MAKETYPE(cv2_depth_id, NumChannels) };
-#endif   // EIGEN_WITH_OPENCV
+  static constexpr int NumChannels = 1;
+  typedef Scalar ChannelType;
 };

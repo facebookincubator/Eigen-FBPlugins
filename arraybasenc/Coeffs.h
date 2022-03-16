@@ -9,5 +9,5 @@ EIGEN_STRONG_INLINE_DEVICE_FUNC ChannelType& operator()(Index row, Index col, In
 EIGEN_STRONG_INLINE_DEVICE_FUNC ChannelType& coeffRef(Index row, Index col, Index channel)
   { return *((ChannelType*) &derived().coeffRef(row, col) + channel); }
 
-using DenseCoeffsBase<Derived, internal::accessors_level<Derived>::value>::coeffRef;
-using DenseBase<Derived>::operator();
+using Base::operator();
+using Base::coeffRef;

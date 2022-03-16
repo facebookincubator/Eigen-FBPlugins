@@ -19,8 +19,6 @@ INIT_TEST(PARTIAL_REDUX, All_Test_Types)
     EXPECT_APPROX(A.alongOuterDim().func().reshaped2d(), \
                   OutputTp(rdata, y)); }
 
-  // TODO(ygitman): alongInnerDim?
-
  // TEST_PARTIAL_REDUX(template lpNorm<1>)
  // TEST_PARTIAL_REDUX(template lpNorm<2>)
  // TEST_PARTIAL_REDUX(template lpNorm<3>)

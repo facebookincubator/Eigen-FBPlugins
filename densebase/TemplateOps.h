@@ -5,12 +5,12 @@
 //! Return slicewise expression along direction
 template <int Dimension> EIGEN_STRONG_INLINE_DEVICE_FUNC
 const auto dimwise() const EIGEN_REQUIRES(Dimension == 0 || Dimension == 1)
-  { return VectorwiseOpExt<const Derived, (Dimension == 1 ? Horizontal : Vertical)>(derived()); }
+  { return derived().template getVectorwiseOp<Dimension == 1 ? Horizontal : Vertical>(); }
 
 //! Return slicewise expression along direction
 template <int Dimension> EIGEN_STRONG_INLINE_DEVICE_FUNC
 auto dimwise() EIGEN_REQUIRES(Dimension == 0 || Dimension == 1)
-  { return VectorwiseOpExt<Derived, (Dimension == 1 ? Horizontal : Vertical)>(derived()); }
+  { return derived().template getVectorwiseOp<Dimension == 1 ? Horizontal : Vertical>(); }
 
 //! Return idx's slice expression along direction
 template <int Dimension> EIGEN_STRONG_INLINE_DEVICE_FUNC
@@ -26,16 +26,17 @@ template <int N> EIGEN_STRONG_INLINE_DEVICE_FUNC auto nested_eval() const EIGEN_
   { return typename internal::nested_eval<Derived, N>::type(derived()); }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC const auto alongInnerDim() const
-  { return VectorwiseOpExt<const Derived, IsRowMajor ? Horizontal : Vertical>(derived()); }
+  { return derived().template getVectorwiseOp<IsRowMajor ? Horizontal : Vertical>(); }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC const auto alongOuterDim() const
-  { return VectorwiseOpExt<const Derived, IsRowMajor ? Vertical : Horizontal>(derived()); }
+  { return derived().template getVectorwiseOp<IsRowMajor ? Vertical : Horizontal>(); }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC auto alongInnerDim()
-  { return VectorwiseOpExt<Derived, IsRowMajor ? Horizontal : Vertical>(derived()); }
+  { return derived().template getVectorwiseOp<IsRowMajor ? Horizontal : Vertical>(); }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC auto alongOuterDim()
-  { return VectorwiseOpExt<Derived, IsRowMajor ? Vertical : Horizontal>(derived()); }
+  { return derived().template getVectorwiseOp<IsRowMajor ? Vertical : Horizontal>(); }
+
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
 const auto innerSubVector(int k) const { return sliceAlong<IsRowMajor ? 0 : 1>(k); }

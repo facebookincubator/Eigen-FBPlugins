@@ -3,26 +3,38 @@
 constexpr static Index channels()
   { return internal::wrap_scalar<Scalar>::NumChannels; }
 
-enum { IsRowMajor = (Flags & RowMajor) };
+enum { IsRowMajor = ((int) Flags & RowMajor) };
 
 EIGEN_IMPORT_CHANNELTYPE(Scalar)
 EIGEN_IMPORT_NUMCHANNELS(Scalar)
 
+#if !EIGEN_VERSION_AT_LEAST(3, 4, 9)
+  template <int Direction> EIGEN_STRONG_INLINE_DEVICE_FUNC auto getVectorwiseOpImpl() const
+    { return VectorwiseOpProxy<const Derived, Direction>(derived()); }
+#endif
+
+EIGEN_STRONG_INLINE_DEVICE_FUNC const auto rowwise() const
+  { return derived().template getVectorwiseOpImpl<Horizontal>(); }
+
+EIGEN_STRONG_INLINE_DEVICE_FUNC auto rowwise()
+  { return derived().template getVectorwiseOpImpl<Horizontal>(); }
+
+EIGEN_STRONG_INLINE_DEVICE_FUNC const auto colwise() const
+  { return derived().template getVectorwiseOpImpl<Vertical>(); }
+
+EIGEN_STRONG_INLINE_DEVICE_FUNC auto colwise()
+  { return derived().template getVectorwiseOpImpl<Vertical>(); }
+
 #include "./arraybase/ChannelwiseOps.h"
-#include "./arraybase/VectorwiseOpExt.h"
 #include "./arraybase/CellwiseOps.h"
-#include "./arraybase/Reductions.h"
-#include "./arraybase/ScalarOps.h"
-#include "./arraybase/BinaryOps.h"
-#include "./arraybase/UnaryOps.h"
+#include "./arraybase/BitwiseOps.h"
 #include "./arraybase/Reshaped.h"
-#include "./arraybase/Indexing.h"
 #include "./arraybase/LinAlg.h"
 
-#ifdef /**/ EIGEN_WITH_OPENCV
+#ifdef EIGEN_WITH_OPENCV
 # include "./arraybase/OpenCV.h"
-#endif   // EIGEN_WITH_OPENCV
+#endif
 
-#ifdef /**/ EIGEN_ARRAYBASE_EXTRA_PLUGIN
+#ifdef EIGEN_ARRAYBASE_EXTRA_PLUGIN
 #  include EIGEN_ARRAYBASE_EXTRA_PLUGIN
-#endif   // EIGEN_ARRAYBASE_EXTRA_PLUGIN
+#endif

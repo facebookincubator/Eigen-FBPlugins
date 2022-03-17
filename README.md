@@ -18,6 +18,7 @@ Include `Eigen/Core` and pass the following options to compiler.
 ```
   -DEIGEN_SPARSEMATRIXBASE_PLUGIN=\"<Path to the project root>/EigenSparsematrixbasePlugin.h\"
   -DEIGEN_PLAINOBJECTBASE_PLUGIN=\"<Path to the project root>/EigenPlainobjectbasePlugin.h\"
+  -DEIGEN_VECTORWISEOP_PLUGIN=\"<Path to the project root>/EigenVectorwiseopPlugin.h\"
   -DEIGEN_SPARSEMATRIX_PLUGIN=\"<Path to the project root>/EigenSparsematrixPlugin.h\"
   -DEIGEN_SPARSEVECTOR_PLUGIN=\"<Path to the project root>/EigenSparsevectorPlugin.h\"
   -DEIGEN_MATRIXBASE_PLUGIN=\"<Path to the project root>/EigenMatrixbasePlugin.h\"

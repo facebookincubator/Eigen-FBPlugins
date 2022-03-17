@@ -25,7 +25,8 @@
     { static inline torch::Dtype func() { return torch:: kI8; } };
 
  public:
-  EIGEN_STRONG_INLINE torch::Tensor torchTensor4D() {
+  EIGEN_STRONG_INLINE torch::Tensor torchTensor4D()
+  EIGEN_REQUIRES(internal::IsRowMajorExpression<Derived>) {
     ChannelType* dptr = reinterpret_cast<ChannelType*>(data());
     torch::Dtype T = torch_datatraits<ChannelType>::func();
     const int N = rows(), M = cols();
@@ -35,7 +36,4 @@
 
     if (NumChannels == 1)
       return torch::from_blob(dptr, {1, NumChannels, N, M}, T);
-
-    EIGEN_STATIC_ASSERT(Flags & RowMajorBit,
-                        THIS_TYPE_IS_NOT_SUPPORTED);
   }

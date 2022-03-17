@@ -3,7 +3,7 @@
 template <typename Tpx, int N>
 struct MakeMapImpl {
   static auto run(const torch::Tensor& arg) {
-    enum { v = internal::is_same<Tpx, void>::value };
+    enum { v = std::is_same<Tpx, void>::value };
     typedef EIGEN_ENABLE_IF(!v, OuterStride<>) DeferredStrideType;
     using A = Array<Array<Tpx, N, 1>, Dynamic, Dynamic, RowMajor>;
     // TODO(ygitman): check if any alignment is guaranteed
@@ -24,7 +24,7 @@ struct MakeMapImpl {
 template <typename Tpx>
 struct MakeMapImpl<Tpx, 1> {
   static auto run(const torch::Tensor& arg) {
-    enum { v = internal::is_same<Tpx, void>::value };
+    enum { v = std::is_same<Tpx, void>::value };
     typedef EIGEN_ENABLE_IF(!v, OuterStride<>) DeferredStrideType;
     using A = Array<Tpx, Dynamic, Dynamic, RowMajor>;
     // TODO(ygitman): check if any alignment is guaranteed

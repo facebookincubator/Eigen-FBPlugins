@@ -14,7 +14,7 @@ for arg in "$@"; do
       -DEIGEN_DENSEBASE_PLUGIN=\""${SCRIPT_DIR}"/../EigenDensebasePlugin.h\"              \
       -DEIGEN_FUNCTORS_PLUGIN=\""${SCRIPT_DIR}"/../EigenFunctorsPlugin.h\"                \
                                                                                           \
-      | sed -e '1,/begin-asm/d' | sed -e '1,/end-asm/!d' | awk NF=1                       \
+      | sed -e '1,/begin-asm/d' | sed -e '1,/end-asm/!d' | awk NF=1 || kill $$            \
   )                                                                                       \
                                                                                           \
   <(                                                                                      \
@@ -26,6 +26,6 @@ for arg in "$@"; do
       -DEIGEN_DENSEBASE_PLUGIN=\""${SCRIPT_DIR}"/../EigenDensebasePlugin.h\"              \
       -DEIGEN_FUNCTORS_PLUGIN=\""${SCRIPT_DIR}"/../EigenFunctorsPlugin.h\"                \
                                                                                           \
-      | sed -e '1,/begin-asm/d' | sed -e '1,/end-asm/!d' | awk NF=1                       \
+      | sed -e '1,/begin-asm/d' | sed -e '1,/end-asm/!d' | awk NF=1 || kill $$            \
   ) || exit 1
 done

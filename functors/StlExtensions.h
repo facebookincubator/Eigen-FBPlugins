@@ -22,7 +22,7 @@ struct Tuple {
 }  // namespace internal
 
 }  // namespace Eigen
-namespace /***/ std {
+namespace std {
 
 template <typename Xpr>
 struct tuple_size<Eigen::internal::Tuple<Xpr>> {
@@ -30,9 +30,10 @@ struct tuple_size<Eigen::internal::Tuple<Xpr>> {
   typedef std::size_t value_type;
   typedef Xpr type;
 
-  constexpr   operator value_type() const noexcept
-    { return value; }
   constexpr value_type operator()() const noexcept
+    { return value; }
+
+  constexpr operator value_type() const noexcept
     { return value; }
 };
 
@@ -57,31 +58,32 @@ struct tuple_element<N, Eigen::internal::Tuple<Xpr>>
   { typedef typename Xpr::Scalar type; };
 
 }  // namespace std
-namespace /***/ Eigen {
+
+namespace Eigen {
 
 template <int Idx, typename Derived>
 EIGEN_STRONG_INLINE_DEVICE_FUNC
-typename internal::enable_if<Derived::IsVectorAtCompileTime, typename Derived::Scalar>::type
+typename std::enable_if_t<Derived::IsVectorAtCompileTime, typename Derived::Scalar&>
+  get(ArrayBase<Derived>& arg)  { return arg.derived()[Idx]; }
+
+template <int Idx, typename Derived>
+EIGEN_STRONG_INLINE_DEVICE_FUNC
+typename std::enable_if_t<Derived::IsVectorAtCompileTime, typename Derived::Scalar&>
+  get(MatrixBase<Derived>& arg) { return arg.derived()[Idx]; }
+
+template <int Idx, typename Derived>
+EIGEN_STRONG_INLINE_DEVICE_FUNC
+typename std::enable_if_t<Derived::IsVectorAtCompileTime, typename Derived::Scalar>
   get(const internal::Tuple<Derived>& arg) { return arg.nestedExpr()[Idx]; }
 
 template <int Idx, typename Derived>
 EIGEN_STRONG_INLINE_DEVICE_FUNC
-typename internal::enable_if<Derived::IsVectorAtCompileTime, typename Derived::Scalar&>::type
-  get(/***/ ArrayBase<Derived>& arg)  { return arg.derived()[Idx]; }
-
-template <int Idx, typename Derived>
-EIGEN_STRONG_INLINE_DEVICE_FUNC
-typename internal::enable_if<Derived::IsVectorAtCompileTime, typename Derived::Scalar&>::type
-  get(/***/ MatrixBase<Derived>& arg) { return arg.derived()[Idx]; }
-
-template <int Idx, typename Derived>
-EIGEN_STRONG_INLINE_DEVICE_FUNC
-typename internal::enable_if<Derived::IsVectorAtCompileTime, typename Derived::Scalar>::type
+typename std::enable_if_t<Derived::IsVectorAtCompileTime, typename Derived::Scalar>
   get(const ArrayBase<Derived>& arg)  { return arg.derived()[Idx]; }
 
 template <int Idx, typename Derived>
 EIGEN_STRONG_INLINE_DEVICE_FUNC
-typename internal::enable_if<Derived::IsVectorAtCompileTime, typename Derived::Scalar>::type
+typename std::enable_if_t<Derived::IsVectorAtCompileTime, typename Derived::Scalar>
   get(const MatrixBase<Derived>& arg) { return arg.derived()[Idx]; }
 
 namespace internal {

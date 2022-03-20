@@ -24,31 +24,31 @@ struct Expr2d<const ExprType, true, false> : Expr2d<ExprType, true, false>
 #  define EXPAND_OTHER_ARGS , OtherArgs...
 #endif
 
-#define GET_CONSTANTS(T)                                                                 \
-  static constexpr bool IsRowMajor = ((int) internal::traits<T>::Flags & RowMajorBit);   \
-  static constexpr bool IsLvalue = ((int) internal::traits<T>::Flags & LvalueBit);       \
-                                                                                         \
-  static constexpr int S = internal::traits<T>::OuterStrideAtCompileTime;                \
-  static constexpr int P = internal::traits<T>::MaxRowsAtCompileTime;                    \
-  static constexpr int Q = internal::traits<T>::MaxColsAtCompileTime;                    \
-  static constexpr int N = internal::traits<T>::RowsAtCompileTime;                       \
-  static constexpr int M = internal::traits<T>::ColsAtCompileTime;                       \
-  static constexpr int Alignment = internal::traits<T>::Alignment;                       \
-  static constexpr int OuterDim = (IsRowMajor ? M : N);                                  \
-                                                                                         \
-  typedef typename internal::traits<T>::Scalar Scalar;                                   \
-                                                                                         \
-  EIGEN_IMPORT_CHANNELTYPE(Scalar);                                                      \
-  EIGEN_IMPORT_NUMCHANNELS(Scalar);                                                      \
-                                                                                         \
-  static constexpr int N2 = N == Dynamic ? Dynamic : IsRowMajor ? N : N * NumChannels;   \
-  static constexpr int M2 = M == Dynamic ? Dynamic : IsRowMajor ? M * NumChannels : M;   \
-  static constexpr int P2 = P == Dynamic ? Dynamic : IsRowMajor ? P : P * NumChannels;   \
-  static constexpr int Q2 = Q == Dynamic ? Dynamic : IsRowMajor ? Q * NumChannels : Q;   \
-  static constexpr bool NoOuterStride = ((S != Dynamic) && (S == OuterDim));             \
-  static constexpr int S2 = (S == Dynamic ? Dynamic : (S * NumChannels));                \
-  static constexpr int Flags2 = (IsRowMajor ? RowMajorBit : 0);                          \
-                                                                                         \
+#define GET_CONSTANTS(T)                                                                   \
+  static constexpr bool IsRowMajor = bool((int) internal::traits<T>::Flags & RowMajorBit); \
+  static constexpr bool IsLvalue = bool((int) internal::traits<T>::Flags & LvalueBit);     \
+                                                                                           \
+  static constexpr int S = internal::traits<T>::OuterStrideAtCompileTime;                  \
+  static constexpr int P = internal::traits<T>::MaxRowsAtCompileTime;                      \
+  static constexpr int Q = internal::traits<T>::MaxColsAtCompileTime;                      \
+  static constexpr int N = internal::traits<T>::RowsAtCompileTime;                         \
+  static constexpr int M = internal::traits<T>::ColsAtCompileTime;                         \
+  static constexpr int Alignment = internal::traits<T>::Alignment;                         \
+  static constexpr int OuterDim = (IsRowMajor ? M : N);                                    \
+                                                                                           \
+  typedef typename internal::traits<T>::Scalar Scalar;                                     \
+                                                                                           \
+  EIGEN_IMPORT_CHANNELTYPE(Scalar);                                                        \
+  EIGEN_IMPORT_NUMCHANNELS(Scalar);                                                        \
+                                                                                           \
+  static constexpr int N2 = ((N == Dynamic) ? Dynamic : IsRowMajor ? N : N * NumChannels); \
+  static constexpr int M2 = ((M == Dynamic) ? Dynamic : IsRowMajor ? M * NumChannels : M); \
+  static constexpr int P2 = ((P == Dynamic) ? Dynamic : IsRowMajor ? P : P * NumChannels); \
+  static constexpr int Q2 = ((Q == Dynamic) ? Dynamic : IsRowMajor ? Q * NumChannels : Q); \
+  static constexpr bool NoOuterStride = bool((S != Dynamic) && (S == OuterDim));           \
+  static constexpr int S2 = (S == Dynamic ? Dynamic : (S * NumChannels));                  \
+  static constexpr int Flags2 = (IsRowMajor ? RowMajorBit : 0);                            \
+                                                                                           \
   typedef Array<ChannelType, N2, M2, Flags2, P2, Q2> PlainObj2;
 
 template <typename T>

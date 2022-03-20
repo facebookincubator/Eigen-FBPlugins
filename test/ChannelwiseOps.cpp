@@ -7,9 +7,9 @@
 #include "CommonHeader.h"
 
 #if !defined(__clang__)
-INIT_TEST(CHANNELWISE_OPS, Types_F32_AnyMajor)
-#else
 INIT_TEST(CHANNELWISE_OPS, Types_3D_F32_AnyMajor)
+#else
+INIT_TEST(CHANNELWISE_OPS, Types_3D_AnyMajor)
 #endif
   EXPECT_APPROX(A.unaryExpr([] (const Scalar& x) { return x.template replicate<4, 1>().eval(); }),
                 A.channelwise().template replicate<4>());

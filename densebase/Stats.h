@@ -1,3 +1,5 @@
+/* Copyright (c) Facebook, Inc. and its affiliates. */
+
 EIGEN_STRONG_INLINE_DEVICE_FUNC
 Scalar median() const {
   auto A = derived().reshaped().eval();

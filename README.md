@@ -163,7 +163,6 @@ auto box_filter2d(const Eigen::ArrayBase<InputDerived>& src,
                   int ksize = KS) {
   if (src.isRowMajor()) {
     auto T = box_filter<Eigen::Horizontal, KS>(src, ksize);
-    std::cerr << "---------------" << std::endl;
     return box_filter<Eigen::Vertical, KS>(T, ksize);
   } else {
     auto T = box_filter<Eigen::Vertical, KS>(src, ksize);

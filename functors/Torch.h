@@ -10,7 +10,7 @@ struct MakeMapImpl {
     using M = Map<const A, Unaligned, OuterStride<>>;
     auto x = at::squeeze(arg);
 
-    eigen_assert(x.stride(1) == 1 && x.stride(2) == 1);
+    eigen_assert(x.stride(1) == N && x.stride(2) == 1);
     eigen_assert(x.sizes().size() == 3);
     eigen_assert(x.size(2) == N);
 

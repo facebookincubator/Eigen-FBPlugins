@@ -4,8 +4,8 @@ template <typename Tp, int N=Dynamic, int M=Dynamic>
 /**************************************************/
 struct CV_Traits {
   enum { LayoutFlag = ((N == 1 || M == 1) ? ColMajor : RowMajor) };
-  enum { DepthId = (cv::traits::Depth<Tp>::value) };
-  enum { TypeId = (cv::traits::Type<Tp>::value) };
+  enum { DepthId = (wrap_scalar<Tp>::cv2_depth_id) };
+  enum { TypeId = (wrap_scalar<Tp>::cv2_type_id) };
   enum { NumDims = (TypeId >> CV_CN_SHIFT) + 1 };
 
   template <int Id> struct ElemType {};

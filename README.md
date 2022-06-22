@@ -183,7 +183,7 @@ As this project is all about metaprogramming, it might increase compilation time
 ### Configurations and reexposing Eigen plugins
 If you want to use this project and still plug-in your own code, you can use `-DEIGEN_<PLUGIN_NAME>_EXTRA_PLUGIN` instead of `-DEIGEN_<PLUGIN_NAME>_PLUGIN`.
 
-Use `-DEIGEN_WITH_TORCH` and `-DEIGEN_WITH_OPENCV -DOPENCV_TRAITS_ENABLE_DEPRECATED` to enable integration with PyTorch and OpenCV respectively.
+Use `-DEIGEN_WITH_TORCH` and `-DEIGEN_WITH_OPENCV` to enable integration with PyTorch and OpenCV respectively.
 
 Use `-DEIGEN_DISABLE_MULTICHANNEL_ARRAYS` if you don't need multichannel arrays.
 

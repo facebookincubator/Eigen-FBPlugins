@@ -1,3 +1,5 @@
+/* Copyright (c) Facebook, Inc. and its affiliates. */
+
 template <int value, typename Func>
 struct LambdaFunctor : std::remove_const_t<Func> {
   template <int Evaluate=1, typename ...Args> EIGEN_STRONG_INLINE_DEVICE_FUNC auto operator()(const Args& ...args) const

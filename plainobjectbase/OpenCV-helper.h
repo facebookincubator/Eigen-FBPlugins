@@ -1,3 +1,5 @@
+/* Copyright (c) Facebook, Inc. and its affiliates. */
+
  private:
   static constexpr bool IsConvertibleToCVMat = std::is_same<typename internal::traits<Derived>::XprKind, ArrayXpr>::value
     && (RowsAtCompileTime == 1 || ColsAtCompileTime == 1 || (Flags & RowMajorBit))

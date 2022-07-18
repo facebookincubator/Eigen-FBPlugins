@@ -1,4 +1,5 @@
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+
 ![unit tests status](https://github.com/facebookincubator/Eigen-FBPlugins/workflows/unit-tests/badge.svg)
 ![perf tests status](https://github.com/facebookincubator/Eigen-FBPlugins/workflows/perf-tests/badge.svg)
 ![lint status](https://github.com/facebookincubator/Eigen-FBPlugins/workflows/lint/badge.svg)
@@ -98,75 +99,91 @@ Now let us try to do something more interesting. Let us implement box filter. Sa
 
 ```c++
 template <Eigen::DirectionType Direction,
-          int KS = Eigen::Dynamic,
+          int Rad = Eigen::Dynamic,
           typename Derived = void>
-auto box_filter(const Eigen::ArrayBase<Derived>& src,
-                int ksize = KS) {
-  typedef typename Derived::Scalar InputScalar;
+auto box_filter(const Eigen::ArrayBase<Derived>& src, int rad = Rad) {
+  static_assert(sizeof(typename Derived::Scalar) >= 2,
+                "data type is too small to accumulate multiple values");
 
-  // Let's require input type to be at least 2 bytes wide,
-  // so that we could safely accumulate input values
-  static_assert(sizeof(InputScalar) >= 2);
+  eigen_assert(2 * rad + 1 < src.template sizeAlong<target_dim>());
+
+  constexpr bool IsRowMajor = std::decay_t<decltype(src)>::isRowMajor();
+  constexpr int target_dim = (Direction == Eigen::Horizontal) ? 1 : 0;
+  constexpr int other_dim = (Direction == Eigen::Horizontal) ? 0 : 1;
+
+  std::decay_t<decltype(src.eval())> dst(src.rows(), src.cols());
 
   // We need to evaluate image in case it is an expression.
   // We can use nested_eval<2>(). In this case Eigen would check benefits
   // of evaluating and do it only if beneficial.
   auto evaled_src = src.derived().template nested_eval<2>();
 
-  constexpr int target_dim = (Direction == Eigen::Horizontal) ? 1 : 0;
-  const int target_dim_size =
-      (Direction == Eigen::Horizontal) ? src.cols() : src.rows();
-  const int other_dim_size =
-      (Direction == Eigen::Horizontal) ? src.rows() : src.cols();
-
-  // Here we will do box filtering only in the interior where it is defined.
-  // To get fancy border interpolations, someone can pass corresponding
-  // Eigen's lazy expression using custom indexing
-  // (https://eigen.tuxfamily.org/dox-devel/group__TutorialSlicingIndexing.html)
-  // or redesign the function to accept template interpolating functor.
-
-  typedef typename std::remove_const<decltype(src(
-      Eigen::cropPads<0, target_dim == 0 ? KS : 0>(0, ksize),
-      Eigen::cropPads<0, target_dim == 1 ? KS : 0>(0, ksize)
-    ).eval())>::type OutputType;
-
-  OutputType dst(
-    target_dim == 0 ? src.rows() - ksize + 1: src.rows(),
-    target_dim == 1 ? src.cols() - ksize + 1: src.cols()
-  );
-
   // Note that filtering along dimension opposite to image layout
-  // can be vectorized using SIMD instruction. This isn't done here.
+  // can be vectorized using SIMD instructions.
+  // So, we will have separate codepath for it.
+  // When codepath is true we will process image row by row,
+  // but when codepath is false we will slice image in the direction
+  // opposite to the filtering direction and do single pass,
+  // but operating on slices
+  constexpr bool codepath = (target_dim == 0) ^ IsRowMajor;
 
-  for (int i = 0; i < other_dim_size; ++i) {
-    // Lazy expressions, so no assembly is generated yet
-    auto output_slice = dst.derived().template sliceAlong<target_dim>(i);
-    auto input_slice = evaled_src.template sliceAlong<target_dim>(i);
+  auto at = [](auto&&v, int i, int j) -> decltype(auto) {
+    if constexpr(codepath) {
+      return std::forward<decltype(v)>(v).template sliceAlong<target_dim>(i)[j];
+    } else {
+      return std::forward<decltype(v)>(v).template sliceAlong<other_dim>(j);
+    }
+  };
 
-    // cellwise().sum() will sum up pixels but keep channels dimension
-    auto s = input_slice.template head<KS>(ksize).cellwise().sum();
+  for (int i = 0; i < (codepath ? src.template sizeAlong<other_dim>() : 1); ++i) {
+    typedef std::decay_t<decltype(Eigen::internal::ops::evaluate(at(evaled_src, i, 0)))> Type;
+    int h = (other_dim == 0 ? (!codepath ? src.template sizeAlong<other_dim>() : 1) : rad);
+    int w = (other_dim == 0 ? rad : (!codepath ? src.template sizeAlong<other_dim>() : 1));
+    constexpr int H = (other_dim == 0 ? (!codepath ? Eigen::Dynamic : 1) : Rad);
+    constexpr int W = (other_dim == 0 ? Rad : (!codepath ? Eigen::Dynamic : 1));
+    int y = (other_dim == 0 ? i : 1), x = (other_dim == 0 ? 1 : i);
+    auto right_side = evaled_src.template block<H, W>(y, x, h, w);
 
-    for (int j = ksize; j < target_dim_size; ++j) {
-      auto diff = input_slice[j - ksize] + input_slice[j];
-      output_slice[j - ksize] = s / ksize;
-      s -= diff;
+    // Let's assume image is reflected across its borders,
+    // and we will handle it with three separate loops:
+    // (1) at the left border
+    // (2) in the interior
+    // (3) at the right border
+
+    auto v = at(evaled_src, i, 0) + 2 * right_side.template dimwise<target_dim>().sum();
+    Type s = Eigen::internal::ops::evaluate(v);
+    at(dst, i, 0) = s / (2 * rad + 1);
+    int j = rad + 1;
+
+    for (; j < 2 * rad + 1; ++j) {
+      s += at(evaled_src, i, j) - at(evaled_src, i, 2 * rad + 1 - j);
+      at(dst, i, j - rad) = s / (2 * rad + 1);
     }
 
-    output_slice[target_dim_size - ksize] = s / ksize;
+    for (; j < src.template sizeAlong<target_dim>(); ++j) {
+      s += at(evaled_src, i, j) - at(evaled_src, i, j - 2 * rad - 1);
+      at(dst, i, j - rad) = s / (2 * rad + 1);
+    }
+
+    for (; j < src.template sizeAlong<target_dim>() + rad; ++j) {
+      const int p = 2 * src.template sizeAlong<target_dim>() - j - 2;
+      s += at(evaled_src, i, p) - at(evaled_src, i, j - 2 * rad - 1);
+      at(dst, i, j - rad) = s / (2 * rad + 1);
+    }
   }
 
   return dst;
 }
 
-template <int KS = Eigen::Dynamic, typename InputDerived = void>
+template <int Rad = Eigen::Dynamic, typename InputDerived = void>
 auto box_filter2d(const Eigen::ArrayBase<InputDerived>& src,
-                  int ksize = KS) {
+                  int rad = Rad) {
   if (src.isRowMajor()) {
-    auto T = box_filter<Eigen::Horizontal, KS>(src, ksize);
-    return box_filter<Eigen::Vertical, KS>(T, ksize);
+    auto T = box_filter<Eigen::Horizontal, Rad>(src, rad);
+    return box_filter<Eigen::Vertical, Rad>(T, rad);
   } else {
-    auto T = box_filter<Eigen::Vertical, KS>(src, ksize);
-    return box_filter<Eigen::Horizontal, KS>(T, ksize);
+    auto T = box_filter<Eigen::Vertical, Rad>(src, rad);
+    return box_filter<Eigen::Horizontal, Rad>(T, rad);
   }
 }
 ```

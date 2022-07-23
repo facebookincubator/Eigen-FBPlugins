@@ -1,0 +1,67 @@
+name: unit-tests-on-pull-request
+
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  run-unit-tests:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        compiler: [{cpp: g++, c: gcc}, {cpp: clang++, c: clang}]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        cmake_generator: ['"Unix Makefiles"']
+        standard: [17, 14]
+        mode: [Release]
+
+        include:
+          -
+            cmake_generator: '"Visual Studio 17 2022" -Thost=x64 -A x64'
+            compiler: {cpp: cl, c: cl}
+            os: windows-2022
+            mode: Release
+            standard: 17
+
+          -
+            cmake_generator: '"Visual Studio 16 2019" -Thost=x64 -A x64'
+            compiler: {cpp: cl, c: cl}
+            os: windows-2019
+            mode: Release
+            standard: 14
+
+          -
+            cmake_generator: '"Unix Makefiles"'
+            compiler: {cpp: clang++, c: clang}
+            os: ubuntu-latest
+            standard: 14
+            mode: ASAN
+
+    steps:
+      - run: >
+          echo "C:\msys64\mingw64\bin" |
+          Out-File -FilePath $Env:GITHUB_PATH
+          -Encoding utf8 -Append
+        if: runner.os == 'Windows'
+
+      - uses: actions/checkout@v2
+
+      - run: git clone https://github.com/google/googletest.git
+      - run: git clone https://gitlab.com/libeigen/eigen.git
+
+      - run: >
+          cmake
+          -DCMAKE_CONFIGURATION_TYPES="${{ matrix.mode }}"
+          -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cpp }}
+          -DCMAKE_C_COMPILER=${{ matrix.compiler.c }}
+          -DCMAKE_CXX_STANDARD=${{ matrix.standard }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.mode }}
+          -G ${{ matrix.cmake_generator }} .
+
+      - run: >
+          cmake --build . --config ${{ matrix.mode }}
+      - run: ctest -j4

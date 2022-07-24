@@ -44,11 +44,11 @@ INIT_TEST(TEMPLATED_OPS_CM, Types_ColMajor)
   EXPECT_APPROX(innerSum, colwiseSum);
 
   for (int i = 0; i < A.outerSize(); ++i) {
-    EXPECT_APPROX(A.outerSubVector(i), A.col(i));
+    EXPECT_APPROX(A.innerSubVector(i), A.col(i));
   }
 
   for (int i = 0; i < A.innerSize(); ++i) {
-    EXPECT_APPROX(A.innerSubVector(i), A.row(i));
+    EXPECT_APPROX(A.outerSubVector(i), A.row(i));
   }
 }
 
@@ -60,20 +60,20 @@ INIT_TEST(TEMPLATED_OPS_RM, Types_RowMajor)
   EXPECT_TRUE(A.outerSize() == A.rows());
   EXPECT_TRUE(A.innerSize() == A.cols());
 
-  const auto& rowwiseSum = A.rowwise().sum().eval();
-  const auto& colwiseSum = A.colwise().sum().eval();
-
   const auto& outerSum = A.alongOuterDim().sum();
   const auto& innerSum = A.alongInnerDim().sum();
+
+  const auto& rowwiseSum = A.rowwise().sum();
+  const auto& colwiseSum = A.colwise().sum();
 
   EXPECT_APPROX(outerSum, colwiseSum);
   EXPECT_APPROX(innerSum, rowwiseSum);
 
-  for (int i = 0; i < A.outerSize(); ++i) {
-    EXPECT_APPROX(A.outerSubVector(i), A.row(i));
+  for (int i = 0; i < A.innerSize(); ++i) {
+    EXPECT_APPROX(A.outerSubVector(i), A.col(i));
   }
 
-  for (int i = 0; i < A.innerSize(); ++i) {
-    EXPECT_APPROX(A.innerSubVector(i), A.col(i));
+  for (int i = 0; i < A.outerSize(); ++i) {
+    EXPECT_APPROX(A.innerSubVector(i), A.row(i));
   }
 }

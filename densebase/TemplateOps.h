@@ -39,16 +39,16 @@ EIGEN_STRONG_INLINE_DEVICE_FUNC auto alongOuterDim()
 
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
-const auto innerSubVector(int k) const { return sliceAlong<IsRowMajor ? 0 : 1>(k); }
+const auto innerSubVector(int k) const { return sliceAlong<IsRowMajor ? 1 : 0>(k); }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
-const auto outerSubVector(int k) const { return sliceAlong<IsRowMajor ? 1 : 0>(k); }
+const auto outerSubVector(int k) const { return sliceAlong<IsRowMajor ? 0 : 1>(k); }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
-auto innerSubVector(int k) { return sliceAlong<IsRowMajor ? 0 : 1>(k); }
+auto innerSubVector(int k) { return sliceAlong<IsRowMajor ? 1 : 0>(k); }
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC
-auto outerSubVector(int k) { return sliceAlong<IsRowMajor ? 1 : 0>(k); }
+auto outerSubVector(int k) { return sliceAlong<IsRowMajor ? 0 : 1>(k); }
 
 constexpr static bool isRowMajor() { return IsRowMajor ? 1 : 0; }
 constexpr static bool isColMajor() { return IsRowMajor ? 0 : 1; }

@@ -27,6 +27,18 @@ INIT_TEST(TEMPLATED_OPS_A, All_Test_Types)
 }
 
 #if !defined(__clang__)
+INIT_TEST(TEMPLATED_OPS_B, Types_F32_AnyMajor)
+#else
+INIT_TEST(TEMPLATED_OPS_B, All_Test_Types)
+#endif
+  auto sums = A.alongInnerDim().sum();
+
+  for (int id = 0; id < A.outerSize(); ++id) {
+    EXPECT_APPROX(A.innerSubVector(id).cellwise().sum(), sums[id]);
+  }
+}
+
+#if !defined(__clang__)
 INIT_TEST(TEMPLATED_OPS_CM, Types_F32_ColMajor)
 #else
 INIT_TEST(TEMPLATED_OPS_CM, Types_ColMajor)

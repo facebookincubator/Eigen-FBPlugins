@@ -1,7 +1,28 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
+#define IsVecAlongDirection \
+  (D == Horizontal && Tp::RowsAtCompileTime == 1) || (D == Vertical && Tp::ColsAtCompileTime == 1)
+
+template <int D, typename Tp, typename Func, bool = IsVecAlongDirection> struct pReduxHelper;
+
+template <int D, typename Tp, typename Func>
+struct pReduxHelper<D, Tp, Func, 0> {
+  static EIGEN_STRONG_INLINE_DEVICE_FUNC auto apply(const Tp& arg, const Func& fn)
+    { return PartialReduxExpr<const Tp, Func, D>(arg, fn); }
+};
+
+template <int D, typename Tp, typename Func>
+struct pReduxHelper<D, Tp, Func, 1> {
+  static EIGEN_STRONG_INLINE_DEVICE_FUNC auto apply(const Tp& arg, const Func& fn)
+    { return fn(arg); }
+};
+
 template <typename Tp, bool value = std::is_base_of<DenseBase<Tp>, Tp>::value>
 struct ApplyCellwise;
+
+template <int D, typename Tp, typename Func>
+EIGEN_STRONG_INLINE_DEVICE_FUNC auto pRedux(const Tp& arg, const Func& fn)
+  { return pReduxHelper<D, Tp, Func>::apply(arg, fn); }
 
 template <typename Tp>
 EIGEN_STRONG_INLINE_DEVICE_FUNC auto apply_cellwise(const Tp& arg)
@@ -42,12 +63,8 @@ struct VectorwiseOpNC : VECTORWISE_OP {
   EIGEN_STRONG_INLINE_DEVICE_FUNC auto op() const {                                                               \
     const auto& fn = [](const auto& slice) EIGEN_LAMBDA_INLINE { return internal::apply_cellwise(slice).op(); };  \
     typedef decltype(fn(std::declval<ExpressionType>().template sliceAlong<D>(std::declval<Index>()))) T;         \
-    return partialReduxHelper(this->_expression(), internal::make_redux_functor<v1, v2, T>(fn));                  \
+    return internal::pRedux<D>(this->_expression(), internal::make_redux_functor<v1, v2, T>(fn));           \
   }
-
-  template <typename Tp, typename Func>
-  EIGEN_STRONG_INLINE_DEVICE_FUNC auto partialReduxHelper(const Tp& arg, const Func& fn) const
-    { return PartialReduxExpr<const Tp, Func, D>(arg, fn); }
 
   typedef typename ExpressionType::Scalar Scalar;
 
@@ -61,9 +78,10 @@ struct VectorwiseOpNC : VECTORWISE_OP {
 
   typedef VECTORWISE_OP Base;
   using Base::Base;
-
-#undef VECTORWISE_OP
-#undef DEFINE_OP
 };
 
 namespace internal {
+
+#undef IsVecAlongDirection
+#undef VECTORWISE_OP
+#undef DEFINE_OP

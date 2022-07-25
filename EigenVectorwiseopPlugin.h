@@ -1,5 +1,6 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
+#include "./vectorwiseop/Block.h"
 #include "./vectorwiseop/Stats.h"
 
 #ifdef EIGEN_VECTORWISEOP_EXTRA_PLUGIN

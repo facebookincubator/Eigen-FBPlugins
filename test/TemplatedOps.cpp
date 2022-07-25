@@ -39,6 +39,19 @@ INIT_TEST(TEMPLATED_OPS_B, All_Test_Types)
 }
 
 #if !defined(__clang__)
+INIT_TEST(TEMPLATED_OPS_C, Types_F32_AnyMajor)
+#else
+INIT_TEST(TEMPLATED_OPS_C, All_Test_Types)
+#endif
+  EXPECT_APPROX(A.rowwise().segment(2, 2), A.middleCols(2, 2));
+  EXPECT_APPROX(A.colwise().segment(2, 2), A.middleRows(2, 2));
+  EXPECT_APPROX(A.rowwise().tail(2), A.rightCols(2));
+  EXPECT_APPROX(A.rowwise().head(2), A.leftCols(2));
+  EXPECT_APPROX(A.colwise().tail(2), A.bottomRows(2));
+  EXPECT_APPROX(A.colwise().head(2), A.topRows(2));
+}
+
+#if !defined(__clang__)
 INIT_TEST(TEMPLATED_OPS_CM, Types_F32_ColMajor)
 #else
 INIT_TEST(TEMPLATED_OPS_CM, Types_ColMajor)

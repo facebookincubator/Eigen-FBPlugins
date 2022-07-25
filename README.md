@@ -104,12 +104,10 @@ template <Eigen::DirectionType Direction,
 auto box_filter(const Eigen::ArrayBase<Derived>& src, int rad = Rad) {
   static_assert(sizeof(typename Derived::Scalar) >= 2,
                 "data type is too small to accumulate multiple values");
-
-  eigen_assert(2 * rad + 1 < src.template sizeAlong<target_dim>());
-
   constexpr bool IsRowMajor = std::decay_t<decltype(src)>::isRowMajor();
   constexpr int target_dim = (Direction == Eigen::Horizontal) ? 1 : 0;
   constexpr int other_dim = (Direction == Eigen::Horizontal) ? 0 : 1;
+  eigen_assert(2 * rad + 1 < src.template sizeAlong<target_dim>());
 
   std::decay_t<decltype(src.eval())> dst(src.rows(), src.cols());
 
@@ -135,23 +133,24 @@ auto box_filter(const Eigen::ArrayBase<Derived>& src, int rad = Rad) {
     }
   };
 
+  auto slice = [](auto&&v, int i) -> decltype(auto) {
+    if constexpr(codepath) {
+      return std::forward<decltype(v)>(v).template sliceAlong<target_dim>(i);
+    } else {
+      return std::forward<decltype(v)>(v).template dimwise<target_dim>();
+    }
+  };
+
+  // Let's assume image is reflected across its borders,
+  // and we will handle it with three separate loops:
+  // (1) at the left border
+  // (2) in the interior
+  // (3) at the right border
+
   for (int i = 0; i < (codepath ? src.template sizeAlong<other_dim>() : 1); ++i) {
-    typedef std::decay_t<decltype(Eigen::internal::ops::evaluate(at(evaled_src, i, 0)))> Type;
-    int h = (other_dim == 0 ? (!codepath ? src.template sizeAlong<other_dim>() : 1) : rad);
-    int w = (other_dim == 0 ? rad : (!codepath ? src.template sizeAlong<other_dim>() : 1));
-    constexpr int H = (other_dim == 0 ? (!codepath ? Eigen::Dynamic : 1) : Rad);
-    constexpr int W = (other_dim == 0 ? Rad : (!codepath ? Eigen::Dynamic : 1));
-    int y = (other_dim == 0 ? i : 1), x = (other_dim == 0 ? 1 : i);
-    auto right_side = evaled_src.template block<H, W>(y, x, h, w);
-
-    // Let's assume image is reflected across its borders,
-    // and we will handle it with three separate loops:
-    // (1) at the left border
-    // (2) in the interior
-    // (3) at the right border
-
-    auto v = at(evaled_src, i, 0) + 2 * right_side.template dimwise<target_dim>().sum();
-    Type s = Eigen::internal::ops::evaluate(v);
+    auto sides = slice(evaled_src, i).template segment<Rad>(1, rad);
+    auto v = at(evaled_src, i, 0) + 2 * sides.template dimwise<target_dim>().sum();
+    auto s = Eigen::internal::ops::evaluate(v);
     at(dst, i, 0) = s / (2 * rad + 1);
     int j = rad + 1;
 

@@ -25,9 +25,6 @@ DEFINE_OPERATOR(operator +, NumTraits<Scalar>::AddCost)
 DEFINE_OPERATOR(operator -, NumTraits<Scalar>::AddCost)
 DEFINE_OPERATOR(operator *, NumTraits<Scalar>::MulCost)
 DEFINE_OPERATOR(operator /, NumTraits<Scalar>::MulCost)
-DEFINE_OPERATOR(operator &, NumTraits<Scalar>::MulCost)
-DEFINE_OPERATOR(operator |, NumTraits<Scalar>::MulCost)
-DEFINE_OPERATOR(operator ^, NumTraits<Scalar>::MulCost)
 
 DEFINE_OP(pow, 5 * NumTraits<Scalar>::MulCost)
 

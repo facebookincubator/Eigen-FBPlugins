@@ -23,10 +23,6 @@ DEFINE_OPERATION_WITH_SCALARS(operator -)
 DEFINE_OPERATION_WITH_SCALARS(operator *)
 DEFINE_OPERATION_WITH_SCALARS(operator /)
 
-DEFINE_OPERATION_WITH_SCALARS(operator &)
-DEFINE_OPERATION_WITH_SCALARS(operator |)
-DEFINE_OPERATION_WITH_SCALARS(operator ^)
-
 // TODO(ygitman): Support NaN propagation
 DEFINE_LHS_OPERATION_WITH_SCALARS(min)
 DEFINE_LHS_OPERATION_WITH_SCALARS(max)
@@ -44,8 +40,6 @@ using Base::operator >=;
 
 using Base::operator <;
 using Base::operator >;
-using Base::operator &;
-using Base::operator |;
 
 using Base::min;
 using Base::max;

@@ -27,7 +27,6 @@ EIGEN_STRONG_INLINE_DEVICE_FUNC auto colwise()
 
 #include "./arraybase/ChannelwiseOps.h"
 #include "./arraybase/CellwiseOps.h"
-#include "./arraybase/BitwiseOps.h"
 #include "./arraybase/Reshaped.h"
 #include "./arraybase/LinAlg.h"
 

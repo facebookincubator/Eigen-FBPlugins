@@ -5,6 +5,10 @@ enable_testing()
 set(BIN_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+endif()
+
 file(GLOB PLUGINS ${SRC_DIR}/Eigen*Plugin.h)
 file(GLOB SRCS ${SRC_DIR}/test/*.cpp)
 add_executable(test-all ${SRCS})

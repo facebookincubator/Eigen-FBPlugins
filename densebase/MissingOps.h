@@ -2,6 +2,9 @@
 
 #include "./MissingOps-helper.h"
 
+template <int N> EIGEN_STRONG_INLINE_DEVICE_FUNC auto nested_eval() const EIGEN_REQUIRES(N >= 1)
+  { return typename internal::nested_eval<Derived, N>::type(derived()); }
+
 // TODO(ygitman): remove extra copy?
 EIGEN_STRONG_INLINE auto sortDesc() const EIGEN_REQUIRES(internal::IsVectorExpression<Derived>)
   { auto A = derived().eval(); A.sortDescInPlace(); return A; }

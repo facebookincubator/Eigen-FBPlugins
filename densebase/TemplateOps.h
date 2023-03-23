@@ -22,9 +22,6 @@ template <int Dimension> EIGEN_STRONG_INLINE_DEVICE_FUNC
 auto sliceAlong(int idx) EIGEN_REQUIRES(Dimension == 0 || Dimension == 1)
   { return typename MSliceExpr<Dimension>::type(derived(), idx); }
 
-template <int N> EIGEN_STRONG_INLINE_DEVICE_FUNC auto nested_eval() const EIGEN_REQUIRES(N >= 1)
-  { return typename internal::nested_eval<Derived, N>::type(derived()); }
-
 EIGEN_STRONG_INLINE_DEVICE_FUNC const auto alongInnerDim() const
   { return derived().template getVectorwiseOp<IsRowMajor ? Horizontal : Vertical>(); }
 

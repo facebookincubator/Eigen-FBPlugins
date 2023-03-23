@@ -19,7 +19,7 @@ jobs:
         compiler: [{cpp: g++, c: gcc}, {cpp: clang++, c: clang}]
         os: [ubuntu-latest, windows-latest, macos-latest]
         cmake_generator: ['"Unix Makefiles"']
-        standard: [17, 14]
+        standard: [20, 14]
         mode: [Release]
 
         include:

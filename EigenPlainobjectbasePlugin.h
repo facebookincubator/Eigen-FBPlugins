@@ -15,6 +15,8 @@ EIGEN_IMPORT_NUMCHANNELS(Scalar) /****/
 #  include "./plainobjectbase/Torch.h"
 #endif
 
+#include "./plainobjectbase/Stats.h"
+
 #ifdef EIGEN_PLAINOBJECT_BASE_EXTRA_PLUGIN
 #  include EIGEN_PLAINOBJECT_BASE_EXTRA_PLUGIN
 #endif

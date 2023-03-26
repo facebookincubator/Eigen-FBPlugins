@@ -46,7 +46,7 @@ static bool isApproxEq(uint8_t A, uint8_t B) { return (A == B); }
     if (std::is_integral<Tp>::value)                       \
       { A -= A / 16 * 16; }                                \
                                                            \
-    const auto& v = A.reshaped2d();                        \
+    auto v = A.reshaped2d();                               \
 
 #ifndef TYPED_TEST_SUITE
 #  define TYPED_TEST_SUITE TYPED_TEST_CASE

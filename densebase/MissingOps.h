@@ -47,3 +47,7 @@ EIGEN_STRONG_INLINE_DEVICE_FUNC auto argany() const {
   else
     return derived().argmax();
 }
+
+EIGEN_STRONG_INLINE_DEVICE_FUNC auto copy() const {
+  return derived().eval();
+}

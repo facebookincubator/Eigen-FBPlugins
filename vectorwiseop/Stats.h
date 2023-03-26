@@ -6,7 +6,7 @@ EIGEN_STRONG_INLINE_DEVICE_FUNC const auto partialReduxHelper(const Tp& arg, con
 
 EIGEN_STRONG_INLINE_DEVICE_FUNC const auto quantile(float x) const {
   const auto& fn = [x](const auto& slice) EIGEN_LAMBDA_INLINE
-    { return slice.quantile(x); };
+    { return slice.copy().quantile(x); };
 
   typedef decltype(fn(this->_expression().template sliceAlong<Direction>(std::declval<Index>()))) T;
   return partialReduxHelper(this->_expression(), internal::make_redux_functor<100, 0, T>(fn));
